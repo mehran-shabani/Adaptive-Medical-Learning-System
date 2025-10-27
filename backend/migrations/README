@@ -1,0 +1,67 @@
+# Alembic Migrations
+
+This directory contains database migrations managed by Alembic.
+
+## Commands
+
+### Create a new migration
+```bash
+alembic revision --autogenerate -m "description of changes"
+```
+
+### Apply migrations
+```bash
+# Upgrade to latest
+alembic upgrade head
+
+# Upgrade one version
+alembic upgrade +1
+
+# Upgrade to specific revision
+alembic upgrade <revision_id>
+```
+
+### Rollback migrations
+```bash
+# Downgrade one version
+alembic downgrade -1
+
+# Downgrade to specific revision
+alembic downgrade <revision_id>
+
+# Downgrade to base (remove all migrations)
+alembic downgrade base
+```
+
+### View migration history
+```bash
+# Show current revision
+alembic current
+
+# Show migration history
+alembic history
+
+# Show pending migrations
+alembic heads
+```
+
+## Initial Setup
+
+After setting up the database for the first time:
+
+1. Create initial migration:
+```bash
+alembic revision --autogenerate -m "Initial tables"
+```
+
+2. Apply migration:
+```bash
+alembic upgrade head
+```
+
+## Notes
+
+- Always review auto-generated migrations before applying
+- Test migrations on development database first
+- Keep migrations small and focused
+- Never edit applied migrations; create new ones instead
