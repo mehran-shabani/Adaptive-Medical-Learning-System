@@ -10,7 +10,7 @@ from pdfminer.high_level import extract_text
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.content.models import Topic, Chunk
+from app.content.models import Topic, Chunk, IngestionJob, IngestionStatus
 from app.content.splitter import TextSplitter
 from app.content.embedding import EmbeddingService
 from app.utils.timestamps import utcnow
@@ -44,15 +44,23 @@ class PDFIngestionService:
         self,
         pdf_path: str,
         topic_id: int,
+        job_id: str,
+        user_id: int,
         metadata: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
-        Ingest a PDF file and create chunks.
+        Ingest a PDF file and create chunks with job tracking.
+        
+        NOTE: PDF files must be legally licensed for use. The raw PDF is stored
+        in persistent storage and each chunk references the source_reference
+        (e.g., "Harrison 21e p.303-309") for transparency and copyright compliance.
         
         Args:
             pdf_path: Path to PDF file
             topic_id: Topic ID to associate chunks with
-            metadata: Optional metadata for chunks
+            job_id: Unique job identifier for tracking
+            user_id: User who initiated the job
+            metadata: Optional metadata for chunks (should include source_reference)
             
         Returns:
             Dict: Ingestion results with statistics
@@ -65,18 +73,38 @@ class PDFIngestionService:
             result = await ingestion.ingest_pdf(
                 "/path/to/harrison_endocrine.pdf",
                 topic_id=5,
-                metadata={"source": "Harrison's 21st Edition"}
+                job_id="abc123",
+                user_id=1,
+                metadata={"source_reference": "Harrison's 21st Edition p.304-309"}
             )
         """
-        # Validate inputs
-        if not os.path.exists(pdf_path):
-            raise FileNotFoundError(f"PDF file not found: {pdf_path}")
+        # Get or create job record
+        job = self.db.query(IngestionJob).filter(IngestionJob.job_id == job_id).first()
+        if not job:
+            job = IngestionJob(
+                job_id=job_id,
+                user_id=user_id,
+                topic_id=topic_id,
+                status=IngestionStatus.QUEUED,
+                pdf_filename=os.path.basename(pdf_path)
+            )
+            self.db.add(job)
+            self.db.commit()
         
-        topic = self.db.query(Topic).filter(Topic.id == topic_id).first()
-        if not topic:
-            raise ValueError(f"Topic not found: {topic_id}")
+        # Update job status to running
+        job.status = IngestionStatus.RUNNING
+        self.db.commit()
         
-        logger.info(f"Starting ingestion of {pdf_path} for topic {topic_id}")
+        try:
+            # Validate inputs
+            if not os.path.exists(pdf_path):
+                raise FileNotFoundError(f"PDF file not found: {pdf_path}")
+            
+            topic = self.db.query(Topic).filter(Topic.id == topic_id).first()
+            if not topic:
+                raise ValueError(f"Topic not found: {topic_id}")
+            
+            logger.info(f"Starting ingestion of {pdf_path} for topic {topic_id}")
         
         # Step 1: Extract text from PDF
         text, page_count = self._extract_text_from_pdf(pdf_path)
@@ -120,18 +148,35 @@ class PDFIngestionService:
             self.db.add(chunk)
             stored_chunks.append(chunk)
         
-        self.db.commit()
-        logger.info(f"Stored {len(stored_chunks)} chunks in database")
+            self.db.commit()
+            logger.info(f"Stored {len(stored_chunks)} chunks in database")
+            
+            # Update job status to done
+            job.status = IngestionStatus.DONE
+            job.chunk_count = len(stored_chunks)
+            job.finished_at = utcnow()
+            self.db.commit()
+            
+            return {
+                "success": True,
+                "job_id": job_id,
+                "pdf_path": pdf_path,
+                "topic_id": topic_id,
+                "page_count": page_count,
+                "chunk_count": len(stored_chunks),
+                "embedding_count": successful_embeddings,
+                "failed_embeddings": len(embeddings) - successful_embeddings
+            }
         
-        return {
-            "success": True,
-            "pdf_path": pdf_path,
-            "topic_id": topic_id,
-            "page_count": page_count,
-            "chunk_count": len(stored_chunks),
-            "embedding_count": successful_embeddings,
-            "failed_embeddings": len(embeddings) - successful_embeddings
-        }
+        except Exception as e:
+            # Update job status to error
+            job.status = IngestionStatus.ERROR
+            job.error_message = str(e)
+            job.finished_at = utcnow()
+            self.db.commit()
+            
+            logger.error(f"Ingestion failed for job {job_id}: {e}")
+            raise
     
     def _extract_text_from_pdf(self, pdf_path: str) -> tuple[str, int]:
         """

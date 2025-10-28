@@ -10,10 +10,11 @@ import httpx
 
 from app.content.models import Topic, Chunk
 from app.content.schemas import (
-    TopicCreate, TopicSummaryResponse, HighYieldTrap,
+    TopicCreate, TopicSummaryResponse, HighYieldTrap, CitationInfo,
     ContentSearchRequest, ContentSearchResponse, ContentSearchResult
 )
 from app.content.embedding import EmbeddingService
+from app.content.llm_client import LLMClient
 from app.config import settings
 from app.utils.timestamps import utcnow
 
@@ -127,18 +128,61 @@ class ContentService:
         # Combine chunk texts
         combined_text = "\n\n".join([chunk.text for chunk in chunks[:10]])  # Limit to first 10 chunks
         
-        # Generate summary using LLM
-        summary, key_points, high_yield_traps = await ContentService._generate_summary_with_llm(
+        # Generate summary using LLM with hallucination prevention
+        summary_data = await LLMClient.generate_summary(
             topic_name=topic.name,
-            content_text=combined_text,
+            chunks_text=combined_text,
             include_high_yield=include_high_yield
         )
         
-        # Get unique source references
+        # Extract data from LLM response
+        summary = summary_data.get("summary", "")
+        key_points = summary_data.get("key_points", [])
+        high_yield_data = summary_data.get("high_yield_traps", [])
+        
+        high_yield_traps = [
+            HighYieldTrap(**trap) for trap in high_yield_data
+        ] if include_high_yield else []
+        
+        # Get unique source references (deprecated field)
         source_refs = list(set(
             chunk.source_pdf_path for chunk in chunks 
             if chunk.source_pdf_path
         ))
+        
+        # Build citations from chunks metadata
+        citations = []
+        for chunk in chunks[:10]:  # Include citations for first 10 chunks used
+            if hasattr(chunk, 'metadata') and chunk.metadata:
+                # Try to extract source_reference from metadata
+                try:
+                    import json
+                    metadata = json.loads(chunk.metadata) if isinstance(chunk.metadata, str) else chunk.metadata
+                    source_ref = metadata.get('source_reference', 'Unknown source')
+                except:
+                    source_ref = chunk.source_pdf_path or "Unknown source"
+            else:
+                source_ref = chunk.source_pdf_path or "Unknown source"
+            
+            # Format page reference
+            if chunk.page_start and chunk.page_end:
+                source_ref += f" p.{chunk.page_start}"
+                if chunk.page_end != chunk.page_start:
+                    source_ref += f"-{chunk.page_end}"
+            
+            citations.append(CitationInfo(
+                source_reference=source_ref,
+                chunk_id=chunk.id
+            ))
+        
+        # Remove duplicate citations
+        unique_citations = []
+        seen = set()
+        for citation in citations:
+            key = (citation.source_reference, citation.chunk_id)
+            if key not in seen:
+                seen.add(key)
+                unique_citations.append(citation)
         
         return TopicSummaryResponse(
             topic_id=topic.id,
@@ -147,93 +191,10 @@ class ContentService:
             key_points=key_points,
             high_yield_traps=high_yield_traps,
             chunk_count=len(chunks),
-            source_references=source_refs
+            source_references=source_refs,
+            citations=unique_citations
         )
     
-    @staticmethod
-    async def _generate_summary_with_llm(
-        topic_name: str,
-        content_text: str,
-        include_high_yield: bool
-    ) -> tuple[str, List[str], List[HighYieldTrap]]:
-        """
-        Generate summary using LLM.
-        
-        Args:
-            topic_name: Name of topic
-            content_text: Combined chunk text
-            include_high_yield: Include high-yield traps
-            
-        Returns:
-            tuple: (summary, key_points, high_yield_traps)
-        """
-        # Prepare prompt
-        prompt = f"""You are a medical education expert. Summarize the following content about "{topic_name}" for medical students preparing for residency exams.
-
-Content:
-{content_text[:4000]}  # Limit to avoid token limits
-
-Please provide:
-1. A concise summary (2-3 paragraphs)
-2. 5-7 key points
-{'3. 3-5 high-yield clinical traps or pearls that students often miss' if include_high_yield else ''}
-
-Format your response as JSON with keys: "summary", "key_points", and "high_yield_traps" (each trap should have "title", "description", "clinical_pearl")."""
-        
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    f"{settings.OPENAI_BASE_URL}/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "model": settings.LLM_MODEL,
-                        "messages": [
-                            {"role": "system", "content": "You are a medical education expert."},
-                            {"role": "user", "content": prompt}
-                        ],
-                        "temperature": settings.LLM_TEMPERATURE,
-                        "max_tokens": settings.LLM_MAX_TOKENS
-                    },
-                    timeout=60.0
-                )
-                
-                response.raise_for_status()
-                data = response.json()
-                
-                # Parse LLM response
-                import json
-                llm_content = data["choices"][0]["message"]["content"]
-                
-                # Try to parse as JSON
-                try:
-                    parsed = json.loads(llm_content)
-                    summary = parsed.get("summary", "")
-                    key_points = parsed.get("key_points", [])
-                    high_yield_data = parsed.get("high_yield_traps", [])
-                    
-                    high_yield_traps = [
-                        HighYieldTrap(**trap) for trap in high_yield_data
-                    ] if include_high_yield else []
-                    
-                except json.JSONDecodeError:
-                    # Fallback: use raw content
-                    summary = llm_content
-                    key_points = []
-                    high_yield_traps = []
-                
-                return summary, key_points, high_yield_traps
-                
-        except Exception as e:
-            logger.error(f"Error generating summary with LLM: {e}")
-            # Return fallback summary
-            return (
-                f"Summary of {topic_name} based on {len(content_text)} characters of content.",
-                ["Content summarization in progress"],
-                []
-            )
     
     @staticmethod
     async def search_content(

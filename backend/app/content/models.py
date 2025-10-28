@@ -1,13 +1,22 @@
 """
 SQLAlchemy models for content management.
 """
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Enum
 from sqlalchemy.orm import relationship
 from pgvector.sqlalchemy import Vector
+import enum
 
 from app.db import Base
 from app.config import settings
 from app.utils.timestamps import utcnow
+
+
+class IngestionStatus(str, enum.Enum):
+    """Enum for ingestion job status."""
+    QUEUED = "queued"        # Job queued for processing
+    RUNNING = "running"      # Job is currently running
+    DONE = "done"           # Job completed successfully
+    ERROR = "error"         # Job failed with error
 
 
 class Topic(Base):
@@ -80,3 +89,52 @@ class Chunk(Base):
     
     def __repr__(self):
         return f"<Chunk(id={self.id}, topic_id={self.topic_id}, pages={self.page_start}-{self.page_end})>"
+
+
+class IngestionJob(Base):
+    """
+    Ingestion job model for tracking PDF processing jobs.
+    
+    Tracks the status of background PDF ingestion tasks.
+    This is critical for providing user feedback on long-running operations.
+    
+    Attributes:
+        id: Primary key
+        job_id: Unique job identifier (string)
+        user_id: Foreign key to user who initiated the job
+        topic_id: Foreign key to target topic
+        status: Current job status (queued/running/done/error)
+        pdf_filename: Original PDF filename
+        chunk_count: Number of chunks created (null until done)
+        error_message: Error details if status is 'error'
+        created_at: Job creation timestamp
+        finished_at: Job completion timestamp
+    
+    Notes:
+        - Job tracking is essential for UX with large PDF files
+        - Status transitions: queued -> running -> done/error
+        - Frontend polls GET /content/ingestion-status/{job_id} for updates
+    """
+    __tablename__ = "ingestion_jobs"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    job_id = Column(String(50), unique=True, nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    topic_id = Column(Integer, ForeignKey("topics.id"), nullable=False, index=True)
+    
+    status = Column(
+        Enum(IngestionStatus),
+        default=IngestionStatus.QUEUED,
+        nullable=False,
+        index=True
+    )
+    
+    pdf_filename = Column(String(500), nullable=True)
+    chunk_count = Column(Integer, nullable=True)
+    error_message = Column(Text, nullable=True)
+    
+    created_at = Column(DateTime, default=utcnow, nullable=False)
+    finished_at = Column(DateTime, nullable=True)
+    
+    def __repr__(self):
+        return f"<IngestionJob(job_id={self.job_id}, status={self.status}, chunks={self.chunk_count})>"

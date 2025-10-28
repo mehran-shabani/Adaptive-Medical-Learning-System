@@ -72,14 +72,20 @@ async def health_check():
     """
     Health check endpoint.
     
+    Public endpoint - no authentication required.
+    
     Returns:
         dict: Application health status
+        
+    Response:
+        {
+            "status": "ok",
+            "version": "0.1.0"
+        }
     """
     return {
-        "status": "healthy",
-        "app_name": settings.APP_NAME,
-        "environment": settings.ENVIRONMENT,
-        "version": "1.0.0"
+        "status": "ok",
+        "version": "0.1.0"
     }
 
 
@@ -89,6 +95,8 @@ async def root():
     """
     Root endpoint.
     
+    Public endpoint - no authentication required.
+    
     Returns:
         dict: Welcome message and API information
     """
@@ -96,7 +104,8 @@ async def root():
         "message": "Welcome to Adaptive Medical Learning System API",
         "docs": "/docs",
         "health": "/health",
-        "version": "1.0.0"
+        "version": "0.1.0",
+        "note": "Version 0.1.0 is currently in development"
     }
 
 

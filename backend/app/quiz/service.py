@@ -16,6 +16,7 @@ from app.quiz.schemas import (
     QuizGenerateRequest, QuizAnswerSubmit, QuestionCreate
 )
 from app.content.models import Topic, Chunk
+from app.content.llm_client import LLMClient
 from app.users.models import User
 from app.config import settings
 from app.utils.timestamps import utcnow
@@ -106,7 +107,7 @@ class QuizService:
         db: Session
     ) -> List[QuizQuestion]:
         """
-        Generate questions using LLM based on chunk content.
+        Generate questions using LLM with hallucination prevention.
         
         Args:
             topic: Topic for questions
@@ -116,90 +117,52 @@ class QuizService:
             db: Database session
             
         Returns:
-            List[QuizQuestion]: Generated questions
+            List[QuizQuestion]: Generated questions (stored in DB with question_id)
         """
         # Combine chunk texts
         context = "\n\n".join([chunk.text for chunk in chunks[:3]])  # Limit context size
         
-        # Create prompt
         difficulty_str = difficulty or "medium"
-        prompt = f"""You are a medical education expert creating {difficulty_str}-difficulty multiple choice questions for residency exam preparation.
-
-Topic: {topic.name}
-
-Content:
-{context[:3000]}
-
-Generate {count} high-quality multiple choice questions based ONLY on the content provided above. Each question should:
-1. Have a clinical vignette-style stem
-2. Have 4 options (A, B, C, D)
-3. Have exactly one correct answer
-4. Include a brief explanation of the correct answer
-5. Be at {difficulty_str} difficulty level for residency exams
-
-Format your response as a JSON array of questions, each with:
-- "stem": question text
-- "option_a": first option
-- "option_b": second option
-- "option_c": third option
-- "option_d": fourth option
-- "correct_option": "A", "B", "C", or "D"
-- "explanation": explanation of correct answer
-
-Respond ONLY with the JSON array, no other text."""
         
         try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    f"{settings.OPENAI_BASE_URL}/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "model": settings.LLM_MODEL,
-                        "messages": [
-                            {"role": "system", "content": "You are a medical education expert."},
-                            {"role": "user", "content": prompt}
-                        ],
-                        "temperature": 0.8,
-                        "max_tokens": 2000
-                    },
-                    timeout=60.0
+            # Use centralized LLM client with hallucination prevention
+            questions_data = await LLMClient.generate_questions(
+                topic_name=topic.name,
+                chunks_text=context,
+                count=count,
+                difficulty=difficulty_str
+            )
+            
+            # Create question objects and save to DB
+            questions = []
+            for q_data in questions_data[:count]:
+                question = QuizQuestion(
+                    topic_id=topic.id,
+                    stem=q_data["stem"],
+                    option_a=q_data["option_a"],
+                    option_b=q_data["option_b"],
+                    option_c=q_data["option_c"],
+                    option_d=q_data["option_d"],
+                    correct_option=q_data["correct_option"].upper(),
+                    explanation=q_data.get("explanation", ""),
+                    difficulty=difficulty or "medium",
+                    source_chunk_id=chunks[0].id if chunks else None,
+                    created_at=utcnow()
                 )
                 
-                response.raise_for_status()
-                data = response.json()
-                
-                # Parse LLM response
-                llm_content = data["choices"][0]["message"]["content"]
-                questions_data = json.loads(llm_content)
-                
-                # Create question objects
-                questions = []
-                for q_data in questions_data[:count]:
-                    question = QuizQuestion(
-                        topic_id=topic.id,
-                        stem=q_data["stem"],
-                        option_a=q_data["option_a"],
-                        option_b=q_data["option_b"],
-                        option_c=q_data["option_c"],
-                        option_d=q_data["option_d"],
-                        correct_option=q_data["correct_option"].upper(),
-                        explanation=q_data.get("explanation", ""),
-                        difficulty=difficulty or "medium",
-                        source_chunk_id=chunks[0].id if chunks else None,
-                        created_at=utcnow()
-                    )
-                    
-                    db.add(question)
-                    questions.append(question)
-                
-                db.commit()
-                logger.info(f"Generated {len(questions)} new questions")
-                
-                return questions
-                
+                db.add(question)
+                questions.append(question)
+            
+            db.commit()
+            
+            # Refresh to get IDs
+            for q in questions:
+                db.refresh(q)
+            
+            logger.info(f"Generated and stored {len(questions)} new questions with IDs")
+            
+            return questions
+            
         except Exception as e:
             logger.error(f"Error generating questions with LLM: {e}")
             return []

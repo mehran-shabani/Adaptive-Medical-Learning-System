@@ -1,0 +1,67 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/api/plan_api_service.dart';
+import '../../core/models/study_plan_model.dart';
+
+/// Study plan state provider
+final studyPlanProvider = StateNotifierProvider<StudyPlanNotifier, StudyPlanState>((ref) {
+  return StudyPlanNotifier();
+});
+
+/// Study plan state
+class StudyPlanState {
+  final StudyPlanModel? plan;
+  final bool isLoading;
+  final String? errorMessage;
+  
+  StudyPlanState({
+    this.plan,
+    this.isLoading = false,
+    this.errorMessage,
+  });
+  
+  StudyPlanState copyWith({
+    StudyPlanModel? plan,
+    bool? isLoading,
+    String? errorMessage,
+  }) {
+    return StudyPlanState(
+      plan: plan ?? this.plan,
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage ?? this.errorMessage,
+    );
+  }
+}
+
+/// Study plan notifier
+class StudyPlanNotifier extends StateNotifier<StudyPlanState> {
+  final PlanApiService _planService = PlanApiService();
+  
+  StudyPlanNotifier() : super(StudyPlanState());
+  
+  /// Load study plan for user
+  Future<void> loadPlan({
+    required int userId,
+    int durationMinutes = 120,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    
+    try {
+      final data = await _planService.getStudyPlan(
+        userId,
+        durationMinutes: durationMinutes,
+      );
+      
+      final plan = StudyPlanModel.fromJson(data);
+      
+      state = state.copyWith(
+        plan: plan,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: e.toString(),
+      );
+    }
+  }
+}

@@ -2,9 +2,12 @@
 Security utilities for authentication and authorization.
 """
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from sqlalchemy.orm import Session
 import secrets
 import string
 
@@ -130,3 +133,98 @@ def generate_random_string(length: int = 32) -> str:
     """
     alphabet = string.ascii_letters + string.digits
     return ''.join(secrets.choice(alphabet) for _ in range(length))
+
+
+# FastAPI Security
+security = HTTPBearer()
+
+
+def get_current_user_from_token(
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+) -> Dict[str, Any]:
+    """
+    Extract and validate user from JWT token.
+    
+    Args:
+        credentials: HTTP Bearer credentials from request header
+        
+    Returns:
+        Dict: Decoded token payload with user info
+        
+    Raises:
+        HTTPException: If token is invalid or expired
+        
+    Example:
+        @app.get("/protected")
+        def protected_route(user = Depends(get_current_user_from_token)):
+            return {"user_id": user["sub"], "role": user["role"]}
+    """
+    token = credentials.credentials
+    payload = decode_access_token(token)
+    
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    return payload
+
+
+def require_role(allowed_roles: List[str]):
+    """
+    Dependency factory for role-based access control.
+    
+    Args:
+        allowed_roles: List of role names that are allowed access
+        
+    Returns:
+        Dependency function that checks user role
+        
+    Raises:
+        HTTPException: If user doesn't have required role
+        
+    Example:
+        @app.post("/content/upload-pdf")
+        def upload_pdf(user = Depends(require_role(["faculty", "admin"]))):
+            # Only faculty and admin can access this endpoint
+            pass
+    """
+    def role_checker(user: Dict[str, Any] = Depends(get_current_user_from_token)) -> Dict[str, Any]:
+        user_role = user.get("role", "student")
+        
+        if user_role not in allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access denied. Required roles: {', '.join(allowed_roles)}"
+            )
+        
+        return user
+    
+    return role_checker
+
+
+def get_current_user_id(user: Dict[str, Any] = Depends(get_current_user_from_token)) -> int:
+    """
+    Extract user ID from token.
+    
+    Args:
+        user: User payload from token
+        
+    Returns:
+        int: User ID
+        
+    Example:
+        @app.get("/profile")
+        def get_profile(user_id: int = Depends(get_current_user_id)):
+            return {"user_id": user_id}
+    """
+    user_id = user.get("sub")
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token: missing user ID"
+        )
+    
+    return int(user_id)
