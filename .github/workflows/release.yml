@@ -47,6 +47,18 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Pull latest changes
+        run: |
+          git pull --rebase origin main || {
+            echo "Failed to pull latest changes. Repository may have been updated."
+            exit 1
+          }
+
       - name: Get current version
         id: current_version
         run: |
@@ -102,9 +114,6 @@ jobs:
 
       - name: Commit version bump
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull --rebase origin main
           git add VERSION
           git commit -m "chore(release): bump version to ${{ steps.bump_version.outputs.new_version }}" || echo "No changes to commit"
           git push origin main || {
@@ -112,7 +121,7 @@ jobs:
             exit 1
           }
 
-      - name: Create Git tag
+      - name: Create and push Git tag
         run: |
           TAG="v${{ steps.bump_version.outputs.new_version }}"
           if git rev-parse "$TAG" >/dev/null 2>&1; then
@@ -121,7 +130,7 @@ jobs:
           fi
           git tag -a "$TAG" -m "Release version ${{ steps.bump_version.outputs.new_version }}"
           git push origin "$TAG"
-          echo "🏷️ Created tag: v${{ steps.bump_version.outputs.new_version }}"
+          echo "🏷️ Created and pushed tag: $TAG"
 
   build-backend:
     name: Build Backend Docker Image
