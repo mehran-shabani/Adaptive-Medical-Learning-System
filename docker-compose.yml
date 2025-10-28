@@ -25,8 +25,10 @@ services:
   redis:
     image: redis:7-alpine
     container_name: adaptive_learning_redis
-    ports:
-      - "6379:6379"
+    # Ports exposed in docker-compose.override.yml for development only
+    # Uncomment for local development if not using override file:
+    # ports:
+    #   - "6379:6379"
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
@@ -53,13 +55,13 @@ services:
       # Redis configuration
       REDIS_URL: redis://redis:6379/0
       
-      # JWT configuration
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-super-secret-jwt-key-change-in-production}
+      # JWT configuration (REQUIRED - set in .env file)
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?ERROR: JWT_SECRET_KEY is required. Generate with 'openssl rand -hex 32' and set in .env file}
       JWT_ALGORITHM: HS256
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
       
-      # OpenAI/LLM configuration
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      # OpenAI/LLM configuration (REQUIRED - set in .env file)
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?ERROR: OPENAI_API_KEY is required. Get your key from https://platform.openai.com/api-keys}
       EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-3-small}
       LLM_MODEL: ${LLM_MODEL:-gpt-4o-mini}
       
@@ -78,7 +80,8 @@ services:
     volumes:
       - ./backend/app:/app/app
       - ./backend/uploads:/app/uploads
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    # Use ${UVICORN_RELOAD} for conditional reload (set in .env: UVICORN_RELOAD=--reload)
+    command: sh -c "uvicorn app.main:app --host 0.0.0.0 --port 8000 ${UVICORN_RELOAD:-}"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -132,8 +135,10 @@ services:
       REDIS_URL: redis://redis:6379/0
       ENVIRONMENT: ${ENVIRONMENT:-development}
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
       - ./backend/app:/app/app
     command: celery -A app.celery_app beat --loglevel=info
@@ -151,6 +156,9 @@ services:
     environment:
       REDIS_URL: redis://redis:6379/0
       CELERY_BROKER_URL: redis://redis:6379/0
+      # Flower authentication (REQUIRED for security)
+      # Set FLOWER_PASSWORD in .env file
+      FLOWER_BASIC_AUTH: ${FLOWER_USER:-admin}:${FLOWER_PASSWORD:?Set FLOWER_PASSWORD in .env for Flower web UI security}
     depends_on:
       - redis
       - worker

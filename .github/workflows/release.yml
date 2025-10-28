@@ -104,14 +104,23 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin main
           git add VERSION
           git commit -m "chore(release): bump version to ${{ steps.bump_version.outputs.new_version }}" || echo "No changes to commit"
-          git push origin main
+          git push origin main || {
+            echo "Failed to push version bump. Another commit may have been pushed."
+            exit 1
+          }
 
       - name: Create Git tag
         run: |
-          git tag -a "v${{ steps.bump_version.outputs.new_version }}" -m "Release version ${{ steps.bump_version.outputs.new_version }}"
-          git push origin "v${{ steps.bump_version.outputs.new_version }}"
+          TAG="v${{ steps.bump_version.outputs.new_version }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists!"
+            exit 1
+          fi
+          git tag -a "$TAG" -m "Release version ${{ steps.bump_version.outputs.new_version }}"
+          git push origin "$TAG"
           echo "🏷️ Created tag: v${{ steps.bump_version.outputs.new_version }}"
 
   build-backend:
@@ -160,7 +169,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
 
       - name: Output image info
         run: |
@@ -198,7 +207,16 @@ jobs:
 
       - name: Build release APK
         working-directory: frontend
-        run: flutter build apk --release
+        run: |
+          # TODO: Add APK signing for production releases
+          # For now, building unsigned APK for testing
+          # To add signing:
+          # 1. Generate keystore: keytool -genkey -v -keystore release-key.jks
+          # 2. Add keystore to GitHub Secrets (base64 encoded)
+          # 3. Create key.properties from secrets in workflow
+          # 4. Update android/app/build.gradle with signing config
+          flutter build apk --release
+          echo "⚠️ WARNING: APK is unsigned. Not suitable for Play Store distribution."
 
       - name: Rename APK with version
         run: |
@@ -284,7 +302,7 @@ jobs:
           EOF
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.release.outputs.new_version }}
           name: Release v${{ needs.release.outputs.new_version }}

@@ -100,12 +100,22 @@ Triggers on merge to `main`:
 git clone https://github.com/your-org/your-repo.git
 cd your-repo
 
+# Copy and configure environment variables
+cp .env.example .env
+# Edit .env and set required variables:
+#   - JWT_SECRET_KEY (generate with: openssl rand -hex 32)
+#   - OPENAI_API_KEY (get from https://platform.openai.com/api-keys)
+#   - FLOWER_PASSWORD (for Celery monitoring UI)
+
 # Start all services (API, Database, Redis, Celery Worker)
 docker-compose up -d
 
 # Backend API will be available at http://localhost:8000
 # API documentation at http://localhost:8000/docs
+# Flower (Celery monitor) at http://localhost:5555
 ```
+
+**Note**: The `docker-compose.yml` uses required environment variables for security. Development ports are exposed via `docker-compose.override.yml` which is automatically loaded in development.
 
 ### Local Development
 
