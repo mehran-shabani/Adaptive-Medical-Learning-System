@@ -128,13 +128,8 @@ class StudyPlanner:
             if not topic:
                 continue
             
-            # Determine priority
-            if mastery.mastery_score < 0.5:
-                priority = "high"
-            elif mastery.mastery_score < settings.MASTERY_WEAK_THRESHOLD:
-                priority = "medium"
-            else:
-                priority = "low"
+            # Determine priority using spaced repetition algorithm
+            priority = self.calculate_review_priority(mastery)
             
             selected.append((topic, mastery, priority))
         
@@ -153,7 +148,7 @@ class StudyPlanner:
         result = []
         for topic in topics:
             mastery = MasteryService.get_or_create_mastery(user_id, topic.id, self.db)
-            priority = "high" if mastery.mastery_score < 0.5 else "medium"
+            priority = self.calculate_review_priority(mastery)
             result.append((topic, mastery, priority))
         
         return result
@@ -171,10 +166,13 @@ class StudyPlanner:
         if not topics:
             return []
         
-        # Assign weights based on priority
+        # Assign weights based on priority (case-insensitive)
         priority_weights = {
+            "HIGH": 1.5,
             "high": 1.5,
+            "MEDIUM": 1.0,
             "medium": 1.0,
+            "LOW": 0.7,
             "low": 0.7
         }
         
@@ -244,7 +242,14 @@ class StudyPlanner:
         return block
     
     def _get_recommendation_reason(self, mastery: Mastery) -> str:
-        """Get human-readable reason for recommending this topic."""
+        """
+        Get human-readable reason for recommending this topic.
+        
+        Implements spaced repetition logic based on:
+        - Mastery score (< 0.7 = weak, 0.7-0.85 = medium, >= 0.85 = strong)
+        - Days since last review
+        - Review history
+        """
         reasons = []
         
         if mastery.mastery_score < 0.5:
@@ -260,6 +265,41 @@ class StudyPlanner:
             reasons.append("Never reviewed - new topic")
         
         return " | ".join(reasons) if reasons else "Recommended for review"
+    
+    def calculate_review_priority(self, mastery: Mastery) -> str:
+        """
+        Calculate review priority using spaced repetition principles.
+        
+        Algorithm:
+        - If mastery_score < 0.7 and days_since(last_reviewed) > 2 → HIGH priority
+        - If mastery_score 0.7-0.85 and days_since(last_reviewed) > 7 → MEDIUM priority  
+        - If mastery_score >= 0.85 → LOW priority (only if user explicitly requests)
+        
+        Args:
+            mastery: Mastery record
+            
+        Returns:
+            str: Priority level ("HIGH", "MEDIUM", "LOW")
+        """
+        if mastery.last_reviewed_at:
+            days = days_since(mastery.last_reviewed_at)
+        else:
+            days = 9999  # Never reviewed
+        
+        # High priority: weak mastery + not reviewed recently
+        if mastery.mastery_score < 0.7 and days > 2:
+            return "HIGH"
+        
+        # Medium priority: medium mastery + not reviewed in a week
+        if 0.7 <= mastery.mastery_score < 0.85 and days > 7:
+            return "MEDIUM"
+        
+        # Low priority: strong mastery (only review if explicitly requested)
+        if mastery.mastery_score >= 0.85:
+            return "LOW"
+        
+        # Default to medium
+        return "MEDIUM"
     
     def _create_empty_plan(self, user_id: int, duration_minutes: int) -> dict:
         """Create empty plan when no topics available."""

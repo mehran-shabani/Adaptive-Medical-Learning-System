@@ -89,13 +89,14 @@ async def verify_otp(
         db=db
     )
     
-    # Create access token
-    access_token, expires_in = AuthService.create_user_token(user.id)
+    # Create access token with role information
+    access_token, expires_in = AuthService.create_user_token(user)
     
     return TokenResponse(
         access_token=access_token,
         token_type="bearer",
         user_id=user.id,
+        role=user.role.value if hasattr(user.role, 'value') else user.role,
         expires_in=expires_in
     )
 

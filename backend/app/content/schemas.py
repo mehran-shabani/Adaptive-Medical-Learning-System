@@ -63,15 +63,34 @@ class HighYieldTrap(BaseModel):
     clinical_pearl: str
 
 
+class CitationInfo(BaseModel):
+    """
+    Schema for citation information.
+    
+    Links summary/content back to specific source chunks for traceability.
+    """
+    source_reference: str = Field(..., description="Source reference (e.g., 'Harrison 21e p.304-305')")
+    chunk_id: int = Field(..., description="Database chunk ID")
+
+
 class TopicSummaryResponse(BaseModel):
-    """Schema for topic summary response."""
+    """
+    Schema for topic summary response with citations.
+    
+    Includes citations array to trace content back to source chunks
+    for transparency and copyright compliance.
+    """
     topic_id: int
     topic_name: str
     summary: str
     key_points: List[str]
     high_yield_traps: List[HighYieldTrap]
     chunk_count: int
-    source_references: List[str]
+    source_references: List[str]  # Deprecated: use citations instead
+    citations: List[CitationInfo] = Field(
+        default_factory=list,
+        description="Citations linking to source chunks"
+    )
 
 
 class ContentSearchRequest(BaseModel):

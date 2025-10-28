@@ -63,6 +63,11 @@ class TokenResponse(BaseModel):
         description="User ID"
     )
     
+    role: str = Field(
+        ...,
+        description="User role (student, faculty, admin)"
+    )
+    
     expires_in: int = Field(
         ...,
         description="Token expiration time in seconds"

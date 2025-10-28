@@ -16,7 +16,8 @@ from app.content.schemas import (
 )
 from app.content.service import ContentService
 from app.content.ingestion import PDFIngestionService
-from app.utils.security import generate_random_string
+from app.content.models import IngestionJob
+from app.utils.security import generate_random_string, require_role, get_current_user_from_token
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -90,21 +91,25 @@ async def get_topic(
 async def get_topic_summary(
     topic_id: int,
     include_high_yield: bool = True,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user_from_token)
 ):
     """
-    Get AI-generated summary for a topic.
+    Get AI-generated summary for a topic with citations.
+    
+    **Authentication Required**: Bearer token
     
     Generates a summary from all chunks associated with the topic,
-    including key points and high-yield clinical pearls.
+    including key points, high-yield clinical pearls, and source citations.
     
     Args:
         topic_id: Topic ID
         include_high_yield: Include high-yield traps and tips
         db: Database session
+        current_user: Current authenticated user
         
     Returns:
-        TopicSummaryResponse: Topic summary with key insights
+        TopicSummaryResponse: Topic summary with key insights and citations
     """
     return await ContentService.get_topic_summary(topic_id, include_high_yield, db)
 
@@ -115,10 +120,13 @@ async def upload_pdf(
     file: UploadFile = File(...),
     topic_id: int = Form(...),
     source_reference: Optional[str] = Form(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(require_role(["faculty", "admin"]))
 ):
     """
     Upload a PDF file for content ingestion.
+    
+    **Access Control**: Only faculty and admin roles can upload PDFs.
     
     The PDF will be processed asynchronously:
     1. Text extraction
@@ -132,16 +140,19 @@ async def upload_pdf(
         topic_id: Topic to associate content with
         source_reference: Optional source reference (e.g., "Harrison's 21st Ed")
         db: Database session
+        current_user: Current authenticated user (injected by dependency)
         
     Returns:
         PDFUploadResponse: Upload confirmation with job ID
         
     Example:
         curl -X POST "http://localhost:8000/api/v1/content/upload-pdf" \
+             -H "Authorization: Bearer <JWT>" \
              -F "file=@harrison_endocrine.pdf" \
              -F "topic_id=5" \
              -F "source_reference=Harrison's Internal Medicine, 21st Edition"
     """
+    user_id = current_user.get("sub")
     # Validate file type
     if not file.filename.endswith('.pdf'):
         raise HTTPException(
@@ -190,7 +201,7 @@ async def upload_pdf(
             "job_id": job_id
         }
         
-        # TODO: Use Celery for production
+        # TODO: Use Celery for production (see celery_tasks.py)
         # For now, use FastAPI background tasks
         async def process_pdf():
             ingestion_service = PDFIngestionService(db)
@@ -198,6 +209,8 @@ async def upload_pdf(
                 result = await ingestion_service.ingest_pdf(
                     str(file_path),
                     topic_id,
+                    job_id,
+                    user_id,
                     metadata
                 )
                 logger.info(f"Ingestion completed: {result}")
@@ -225,10 +238,63 @@ async def upload_pdf(
         )
 
 
+@router.get("/ingestion-status/{job_id}")
+async def get_ingestion_status(
+    job_id: str,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user_from_token)
+):
+    """
+    Get the status of a PDF ingestion job.
+    
+    Clients should poll this endpoint to track ingestion progress.
+    
+    Args:
+        job_id: Job ID returned from upload-pdf endpoint
+        db: Database session
+        current_user: Current authenticated user
+        
+    Returns:
+        dict: Job status and details
+        
+    Response Schema:
+        {
+            "job_id": str,
+            "status": "queued" | "running" | "done" | "error",
+            "chunk_count": int (null if not done),
+            "error_message": str (null if no error),
+            "created_at": datetime,
+            "finished_at": datetime (null if not finished)
+        }
+        
+    Example:
+        GET /api/v1/content/ingestion-status/abc123
+        Authorization: Bearer <JWT>
+    """
+    job = db.query(IngestionJob).filter(IngestionJob.job_id == job_id).first()
+    
+    if not job:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Ingestion job not found"
+        )
+    
+    return {
+        "job_id": job.job_id,
+        "status": job.status,
+        "chunk_count": job.chunk_count,
+        "error_message": job.error_message,
+        "created_at": job.created_at,
+        "finished_at": job.finished_at,
+        "pdf_filename": job.pdf_filename
+    }
+
+
 @router.post("/search", response_model=ContentSearchResponse)
 async def search_content(
     search_request: ContentSearchRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user_from_token)
 ):
     """
     Search content using semantic similarity.
@@ -238,6 +304,7 @@ async def search_content(
     Args:
         search_request: Search parameters
         db: Database session
+        current_user: Current authenticated user
         
     Returns:
         ContentSearchResponse: Relevant content chunks with similarity scores

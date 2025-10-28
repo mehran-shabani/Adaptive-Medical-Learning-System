@@ -29,9 +29,16 @@ class TargetSpecialty(str, enum.Enum):
     GENERAL = "general"
 
 
+class UserRole(str, enum.Enum):
+    """Enum for user roles and access control."""
+    STUDENT = "student"       # Medical student
+    FACULTY = "faculty"       # Faculty / Senior resident / Content supervisor
+    ADMIN = "admin"           # System administrator
+
+
 class User(Base):
     """
-    User model representing a medical student.
+    User model representing a medical student or faculty member.
     
     Attributes:
         id: Primary key
@@ -39,6 +46,7 @@ class User(Base):
         name: User's full name
         study_level: Current study level (intern, resident, etc.)
         target_specialty: Target specialty for residency
+        role: User role (student, faculty, admin) for access control
         created_at: Account creation timestamp
         updated_at: Last profile update timestamp
     """
@@ -56,6 +64,11 @@ class User(Base):
         Enum(TargetSpecialty),
         default=TargetSpecialty.GENERAL,
         nullable=True
+    )
+    role = Column(
+        Enum(UserRole),
+        default=UserRole.STUDENT,
+        nullable=False
     )
     created_at = Column(DateTime, default=utcnow, nullable=False)
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)

@@ -8,6 +8,7 @@ from typing import Optional, List
 from app.db import get_db
 from app.recommender.schemas import StudyPlanResponse, StudyPlanRequest
 from app.recommender.service import RecommenderService
+from app.utils.security import get_current_user_from_token
 
 router = APIRouter()
 
@@ -18,22 +19,27 @@ async def get_study_plan(
     duration_minutes: int = Query(120, ge=30, le=300, description="Study duration in minutes"),
     focus_topics: Optional[str] = Query(None, description="Comma-separated topic IDs to focus on"),
     include_quiz: bool = Query(True, description="Include quiz questions in plan"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user_from_token)
 ):
     """
     Generate personalized study plan for user.
     
+    **Authentication Required**: Bearer token
+    
     Creates an adaptive 2-hour (or custom duration) study plan based on:
-    - Current mastery levels (prioritizes weak areas)
-    - Time since last review (spaced repetition)
+    - Current mastery levels (prioritizes weak areas with spaced repetition)
+    - Time since last review (uses spaced repetition algorithm)
     - Never-studied topics
     - Optional focus topics
     
     The plan includes:
-    - Ordered study blocks with time allocation
+    - Ordered study blocks with time allocation and priority
     - Content summaries for each topic
-    - Practice quiz questions
-    - Recommendations and reasoning
+    - Practice quiz questions (if include_quiz=true)
+    - Spaced repetition reasoning
+    
+    After generation, the plan is logged in StudyPlanLog for tracking.
     
     Args:
         user_id: User ID
@@ -41,14 +47,14 @@ async def get_study_plan(
         focus_topics: Optional comma-separated topic IDs (e.g., "1,5,12")
         include_quiz: Include quiz questions (default: true)
         db: Database session
+        current_user: Current authenticated user
         
     Returns:
         StudyPlanResponse: Complete personalized study plan
         
     Example:
         GET /recommender/1/plan?duration_minutes=120&include_quiz=true
-        
-        GET /recommender/1/plan?focus_topics=5,7,9&duration_minutes=90
+        Authorization: Bearer <JWT>
     """
     # Parse focus topics
     focus_topic_list = None

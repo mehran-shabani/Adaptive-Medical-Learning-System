@@ -136,19 +136,20 @@ class AuthService:
         return user
     
     @staticmethod
-    def create_user_token(user_id: int) -> Tuple[str, int]:
+    def create_user_token(user: User) -> Tuple[str, int]:
         """
-        Create JWT access token for user.
+        Create JWT access token for user with role information.
         
         Args:
-            user_id: User ID
+            user: User object
             
         Returns:
             Tuple[str, int]: Access token and expiry seconds
         """
-        # Create token data
+        # Create token data with role for access control
         token_data = {
-            "sub": str(user_id),
+            "sub": str(user.id),
+            "role": user.role.value if hasattr(user.role, 'value') else user.role,
             "type": "access"
         }
         
