@@ -26,7 +26,7 @@ async def generate_quiz(
     limit: int = Query(5, ge=1, le=20, description="Number of questions (pagination support)"),
     difficulty: str | None = Query(None, regex="^(easy|medium|hard)$", description="Filter by difficulty"),
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user_from_token),
+    current_user: dict = Depends(get_current_user_from_token),  # noqa: ARG001
 ):
     """
     Generate or fetch quiz questions for a topic.
@@ -65,7 +65,7 @@ async def generate_quiz(
 async def submit_answer(
     answer_data: QuizAnswerSubmit,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user_from_token),
+    current_user: dict = Depends(get_current_user_from_token),  # noqa: ARG001
 ):
     """
     Submit answer to a quiz question.

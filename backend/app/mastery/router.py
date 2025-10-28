@@ -17,7 +17,7 @@ router = APIRouter()
 async def get_user_mastery(
     user_id: int = Path(..., description="User ID"),
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user_from_token),
+    current_user: dict = Depends(get_current_user_from_token),  # noqa: ARG001
 ):
     """
     Get mastery dashboard for user.
@@ -51,7 +51,7 @@ async def get_topic_mastery(
     user_id: int = Path(..., description="User ID"),
     topic_id: int = Path(..., description="Topic ID"),
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user_from_token),
+    current_user: dict = Depends(get_current_user_from_token),  # noqa: ARG001
 ):
     """
     Get detailed mastery information for a specific topic.

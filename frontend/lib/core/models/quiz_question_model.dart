@@ -6,7 +6,8 @@ class QuizQuestionModel {
     required this.options,
   });
 
-  factory QuizQuestionModel.fromJson(Map<String, dynamic> json) => QuizQuestionModel(
+  factory QuizQuestionModel.fromJson(Map<String, dynamic> json) =>
+      QuizQuestionModel(
       questionId: json['id'] as int,
       stem: json['stem'] as String,
       options: (json['options'] as List)

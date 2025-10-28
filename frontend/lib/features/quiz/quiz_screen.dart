@@ -21,15 +21,15 @@ class QuizScreen extends ConsumerStatefulWidget {
 
 class _QuizScreenState extends ConsumerState<QuizScreen> {
   String? _selectedOption;
-  DateTime? _questionStartTime;
+  // DateTime? _questionStartTime; // Will be used when submitting answers
 
   @override
   void initState() {
     super.initState();
-    _questionStartTime = DateTime.now();
+    // _questionStartTime = DateTime.now(); // Will be set when question is loaded
     // Load quiz questions
     Future.microtask(() {
-      // TODO: Load quiz for topic
+      // TODO(dev): Load quiz for topic
       // ref.read(quizProvider.notifier).loadQuiz(topicId: widget.topicId);
     });
   }
@@ -42,11 +42,10 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
       return;
     }
 
-    // Calculate response time
-    final responseTime =
-        DateTime.now().difference(_questionStartTime!).inSeconds.toDouble();
-
-    // TODO: Submit answer
+    // TODO(dev): Submit answer
+    // Calculate response time when needed
+    // final responseTime =
+    //     DateTime.now().difference(_questionStartTime!).inSeconds.toDouble();
     // ref.read(quizProvider.notifier).submitAnswer(
     //   questionId: currentQuestion.questionId,
     //   chosenOption: _selectedOption!,
@@ -56,7 +55,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Watch quiz provider state
+    // TODO(dev): Watch quiz provider state
     // final quizState = ref.watch(quizProvider);
 
     return Scaffold(
@@ -68,7 +67,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
               child: Text(
-                '۱/۵', // TODO: Use actual question count
+                '۱/۵', // TODO(dev): Use actual question count
                 style: TextStyle(fontSize: 16),
               ),
             ),
@@ -94,7 +93,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         const SizedBox(height: 12),
-                        // TODO: Display actual question stem
+                        // TODO(dev): Display actual question stem
                         const Text(
                           'کودک ۸ ساله با تشنگی شدید، تنفس عمیق و سریع (کوسماول)، و سطح هوشیاری کاهش یافته به اورژانس مراجعه می‌کند. قند خون ۴۵۰ mg/dL، کتون ادراری ++++، و pH خون ۷.۱۵ است. اولین اقدام درمانی کدام است؟',
                           style: TextStyle(fontSize: 16, height: 1.6),
@@ -108,7 +107,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
             const SizedBox(height: 16),
 
             // Options
-            // TODO: Map through actual options
+            // TODO(dev): Map through actual options
             QuizOptionTile(
               label: 'الف',
               text: 'نرمال سالین سریع وریدی',

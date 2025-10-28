@@ -22,14 +22,14 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
     super.initState();
     // Load study plan on screen init
     Future.microtask(() {
-      // TODO: Load study plan
+      // TODO(dev): Load study plan
       // ref.read(studyPlanProvider.notifier).loadPlan(userId: 1);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Watch study plan provider state
+    // TODO(dev): Watch study plan provider state
     // final planState = ref.watch(studyPlanProvider);
 
     return Scaffold(
@@ -39,7 +39,7 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              // TODO: Regenerate plan
+              // TODO(dev): Regenerate plan
               // ref.read(studyPlanProvider.notifier).loadPlan(userId: 1);
             },
           ),
@@ -61,7 +61,8 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'این برنامه بر اساس میزان تسلط و زمان مرور قبلی شما طراحی شده است.',
+                    'این برنامه بر اساس میزان تسلط و زمان مرور قبلی شما '
+                    'طراحی شده است.',
                   ),
                 ],
               ),
@@ -70,7 +71,7 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
           const SizedBox(height: 16),
 
           // Study blocks
-          // TODO: Map through actual plan blocks
+          // TODO(dev): Map through actual plan blocks
           const PlanBlockCard(
             topic: 'مدیریت کتواسیدوز دیابتی (DKA)',
             priority: 'HIGH',
@@ -98,7 +99,7 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
           // Start studying button
           ElevatedButton.icon(
             onPressed: () {
-              // TODO: Start first study block
+              // TODO(dev): Start first study block
               // Navigate to summary screen for first topic
             },
             icon: const Icon(Icons.play_arrow),

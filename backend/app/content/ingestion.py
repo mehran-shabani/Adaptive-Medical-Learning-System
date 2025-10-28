@@ -191,7 +191,7 @@ class PDFIngestionService:
                 return self._extract_with_pdfminer(pdf_path)
             except Exception as e2:
                 logger.error(f"Both extraction methods failed: {e2}")
-                raise ValueError("Failed to extract text from PDF")
+                raise ValueError("Failed to extract text from PDF") from e2
 
     def _extract_with_pymupdf(self, pdf_path: str) -> tuple[str, int]:
         """Extract text using PyMuPDF (fitz)."""

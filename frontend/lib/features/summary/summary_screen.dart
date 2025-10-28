@@ -24,14 +24,16 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
     super.initState();
     // Load summary on screen init
     Future.microtask(() {
-      // TODO: Load topic summary
-      // ref.read(summaryProvider.notifier).loadSummary(topicId: widget.topicId);
+      // TODO(dev): Load topic summary
+      // ref
+      //     .read(summaryProvider.notifier)
+      //     .loadSummary(topicId: widget.topicId);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Watch summary provider state
+    // TODO(dev): Watch summary provider state
     // final summaryState = ref.watch(summaryProvider);
 
     return Scaffold(
@@ -49,7 +51,8 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'مدیریت کتواسیدوز دیابتی (DKA)', // TODO: Use actual topic name
+                    // TODO(dev): Use actual topic name
+                    'مدیریت کتواسیدوز دیابتی (DKA)',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ],
@@ -64,15 +67,15 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
-          // TODO: Map through actual key points
+          // TODO(dev): Map through actual key points
           const KeypointCard(
             title: 'نکته ۱',
             content: 'هدف اصلی درمان DKA اصلاح کم‌آبی و اسیدوز است',
           ),
           const KeypointCard(
             title: 'نکته ۲',
-            content:
-                'شروع انسولین قبل از احیای مایع در کودکان می‌تواند خطر ادم مغزی را افزایش دهد',
+            content: 'شروع انسولین قبل از احیای مایع در کودکان می‌تواند '
+                'خطر ادم مغزی را افزایش دهد',
           ),
           const KeypointCard(
             title: 'نکته ۳',
@@ -106,7 +109,8 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'بیکربنات وریدی معمولاً در DKA کودکان توصیه نمی‌شود مگر در موارد خاص',
+                    'بیکربنات وریدی معمولاً در DKA کودکان توصیه نمی‌شود '
+                    'مگر در موارد خاص',
                   ),
                 ],
               ),
@@ -127,7 +131,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // TODO: Map through actual citations
+                  // TODO(dev): Map through actual citations
                   _buildCitation('Harrison 21e p.304-305'),
                   const Divider(),
                   _buildCitation('Cecil 27e p.1121'),
@@ -141,7 +145,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
           // Start quiz button
           ElevatedButton.icon(
             onPressed: () {
-              // TODO: Navigate to quiz for this topic
+              // TODO(dev): Navigate to quiz for this topic
               // Navigator.of(context).push(
               //   MaterialPageRoute(
               //     builder: (context) => QuizScreen(topicId: widget.topicId),

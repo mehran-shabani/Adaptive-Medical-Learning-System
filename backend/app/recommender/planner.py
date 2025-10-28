@@ -246,10 +246,7 @@ class StudyPlanner:
         Returns:
             str: Priority level ("HIGH", "MEDIUM", "LOW")
         """
-        if mastery.last_reviewed_at:
-            days = days_since(mastery.last_reviewed_at)
-        else:
-            days = 9999  # Never reviewed
+        days = days_since(mastery.last_reviewed_at) if mastery.last_reviewed_at else 9999  # Never reviewed
 
         # High priority: weak mastery + not reviewed recently
         if mastery.mastery_score < 0.7 and days > 2:

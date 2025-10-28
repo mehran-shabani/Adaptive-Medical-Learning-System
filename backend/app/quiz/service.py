@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.content.llm_client import LLMClient
 from app.content.models import Chunk, Topic
+from app.mastery.service import MasteryService
 from app.quiz.models import QuizAnswer, QuizQuestion
 from app.quiz.schemas import (
     QuestionCreate,
@@ -215,8 +216,6 @@ class QuizService:
         logger.info(f"User {answer_data.user_id} answered question {answer_data.question_id}: {correct}")
 
         # Update mastery score
-        from app.mastery.service import MasteryService
-
         new_mastery = MasteryService.update_mastery_from_quiz(
             user_id=answer_data.user_id, topic_id=question.topic_id, correct=correct, db=db
         )

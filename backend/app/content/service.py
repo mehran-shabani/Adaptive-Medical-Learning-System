@@ -2,6 +2,7 @@
 Content service layer for business logic.
 """
 
+import json
 import logging
 
 from fastapi import HTTPException, status
@@ -137,11 +138,9 @@ class ContentService:
             if hasattr(chunk, "metadata") and chunk.metadata:
                 # Try to extract source_reference from metadata
                 try:
-                    import json
-
                     metadata = json.loads(chunk.metadata) if isinstance(chunk.metadata, str) else chunk.metadata
                     source_ref = metadata.get("source_reference", "Unknown source")
-                except:
+                except Exception:
                     source_ref = chunk.source_pdf_path or "Unknown source"
             else:
                 source_ref = chunk.source_pdf_path or "Unknown source"
@@ -175,7 +174,7 @@ class ContentService:
         )
 
     @staticmethod
-    async def search_content(search_request: ContentSearchRequest, db: Session) -> ContentSearchResponse:
+    async def search_content(search_request: ContentSearchRequest, db: Session) -> ContentSearchResponse:  # noqa: ARG004
         """
         Search content using semantic similarity.
 

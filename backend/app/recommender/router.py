@@ -20,7 +20,7 @@ async def get_study_plan(
     focus_topics: str | None = Query(None, description="Comma-separated topic IDs to focus on"),
     include_quiz: bool = Query(True, description="Include quiz questions in plan"),
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user_from_token),
+    current_user: dict = Depends(get_current_user_from_token),  # noqa: ARG001
 ):
     """
     Generate personalized study plan for user.

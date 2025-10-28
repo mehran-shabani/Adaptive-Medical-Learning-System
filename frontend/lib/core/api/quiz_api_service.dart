@@ -75,7 +75,8 @@ class QuizApiService {
   ///   "chosen_option": "B",
   ///   "response_time_sec": 45.5
   /// }
-  /// Response: { "correct": true, "explanation": "...", "new_mastery_score": 0.75 }
+  /// Response:
+  /// { "correct": true, "explanation": "...", "new_mastery_score": 0.75 }
   Future<Map<String, dynamic>> submitAnswer({
     required int userId,
     required int questionId,

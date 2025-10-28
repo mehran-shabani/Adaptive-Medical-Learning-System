@@ -84,7 +84,7 @@ async def get_topic_summary(
     topic_id: int,
     include_high_yield: bool = True,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user_from_token),
+    current_user: dict = Depends(get_current_user_from_token),  # noqa: ARG001
 ):
     """
     Get AI-generated summary for a topic with citations.
@@ -209,12 +209,12 @@ async def upload_pdf(
             file_path.unlink()
 
         logger.error(f"Error uploading PDF: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to upload PDF")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to upload PDF") from e
 
 
 @router.get("/ingestion-status/{job_id}")
 async def get_ingestion_status(
-    job_id: str, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user_from_token)
+    job_id: str, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user_from_token)  # noqa: ARG001
 ):
     """
     Get the status of a PDF ingestion job.
@@ -263,7 +263,7 @@ async def get_ingestion_status(
 async def search_content(
     search_request: ContentSearchRequest,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user_from_token),
+    current_user: dict = Depends(get_current_user_from_token),  # noqa: ARG001
 ):
     """
     Search content using semantic similarity.

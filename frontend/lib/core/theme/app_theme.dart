@@ -25,7 +25,6 @@ class AppTheme {
           primary: primaryBlue,
           secondary: accentGreen,
           error: errorRed,
-          background: backgroundLight,
           surface: surfaceWhite,
         ),
 

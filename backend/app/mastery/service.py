@@ -11,7 +11,7 @@ from app.config import settings
 from app.content.models import Topic
 from app.mastery.models import Mastery
 from app.mastery.schemas import MasteryScore, TopicMasteryDetail, UserMasteryDashboard
-from app.quiz.models import QuizAnswer
+from app.quiz.models import QuizAnswer, QuizQuestion
 from app.users.models import User
 from app.utils.timestamps import days_since, utcnow
 
@@ -177,8 +177,8 @@ class MasteryService:
             by_system[system]["topics"].append(m.mastery_score)
 
         # Calculate averages
-        for system in by_system:
-            scores = by_system[system]["topics"]
+        for system, data in by_system.items():
+            scores = data["topics"]
             by_system[system]["average_mastery"] = sum(scores) / len(scores)
             del by_system[system]["topics"]  # Remove detailed scores
 
@@ -212,8 +212,6 @@ class MasteryService:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Topic not found")
 
         # Get quiz statistics for this topic
-        from app.quiz.models import QuizQuestion
-
         quiz_answers = (
             db.query(QuizAnswer)
             .join(QuizQuestion)

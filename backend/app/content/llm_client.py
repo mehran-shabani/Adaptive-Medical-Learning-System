@@ -148,24 +148,26 @@ Respond ONLY with the JSON array."""
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail="Invalid OpenAI API key. Please check your configuration.",
-                )
+                ) from e
             elif e.response.status_code == 429:
                 raise HTTPException(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                     detail="OpenAI API rate limit exceeded. Please try again later.",
-                )
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"OpenAI API error: {str(e)}")
+                ) from e
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"OpenAI API error: {str(e)}"
+            ) from e
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse LLM response as JSON: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to parse LLM response. Please try again.",
-            )
+            ) from e
         except Exception as e:
             logger.error(f"Unexpected error generating questions with LLM: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error generating questions: {str(e)}"
-            )
+            ) from e
 
     @staticmethod
     async def generate_summary(topic_name: str, chunks_text: str, include_high_yield: bool = True) -> dict[str, Any]:
@@ -253,21 +255,23 @@ Respond ONLY with the JSON."""
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail="Invalid OpenAI API key. Please check your configuration.",
-                )
+                ) from e
             elif e.response.status_code == 429:
                 raise HTTPException(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                     detail="OpenAI API rate limit exceeded. Please try again later.",
-                )
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"OpenAI API error: {str(e)}")
+                ) from e
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"OpenAI API error: {str(e)}"
+            ) from e
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse LLM response as JSON: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to parse LLM response. Please try again.",
-            )
+            ) from e
         except Exception as e:
             logger.error(f"Unexpected error generating summary with LLM: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error generating summary: {str(e)}"
-            )
+            ) from e

@@ -4,7 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Summary state provider
 final summaryProvider = StateNotifierProvider<SummaryNotifier, SummaryState>(
-    (ref) => SummaryNotifier(),);
+  (ref) => SummaryNotifier(),
+);
 
 /// Summary state
 class SummaryState {
@@ -46,7 +47,7 @@ class SummaryNotifier extends StateNotifier<SummaryState> {
         summary: summary,
         isLoading: false,
       );
-    } catch (e) {
+    } on Exception catch (e) {
       state = state.copyWith(
         isLoading: false,
         errorMessage: e.toString(),

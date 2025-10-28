@@ -45,7 +45,8 @@ class AdaptiveMedApp extends StatelessWidget {
           '/study-plan': (context) => const StudyPlanScreen(),
         },
 
-        // Route generator for routes with parameters (quiz and summary need topicId)
+        // Route generator for routes with parameters
+        // (quiz and summary need topicId)
         onGenerateRoute: (settings) {
           if (settings.name == '/quiz') {
             final args = settings.arguments as Map<String, dynamic>?;

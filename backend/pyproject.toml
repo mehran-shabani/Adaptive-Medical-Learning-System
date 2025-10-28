@@ -4,6 +4,27 @@ target-version = "py311"
 line-length = 120
 indent-width = 4
 
+# Exclude directories
+exclude = [
+    ".git",
+    ".ruff_cache",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "migrations",
+    "*.egg-info",
+]
+
+[tool.ruff.format]
+# Formatting options
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "lf"
+
+[tool.ruff.lint]
 # Enable specific rule sets
 select = [
     "E",   # pycodestyle errors
@@ -25,26 +46,6 @@ ignore = [
     "PLR0913", # too many arguments
     "PLR2004", # magic value used in comparison
 ]
-
-# Exclude directories
-exclude = [
-    ".git",
-    ".ruff_cache",
-    ".venv",
-    "venv",
-    "__pycache__",
-    "build",
-    "dist",
-    "migrations",
-    "*.egg-info",
-]
-
-[tool.ruff.format]
-# Formatting options
-quote-style = "double"
-indent-style = "space"
-skip-magic-trailing-comma = false
-line-ending = "lf"
 
 [tool.ruff.lint.isort]
 # Import sorting

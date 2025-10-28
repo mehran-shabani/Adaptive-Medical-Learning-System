@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 /// Widget for displaying mastery progress for a body system
 class MasteryCard extends StatelessWidget {
   const MasteryCard({
-    required this.systemName, required this.masteryScore, super.key,
+    required this.systemName,
+    required this.masteryScore,
+    super.key,
     this.lastReviewedDaysAgo,
   });
   final String systemName;
@@ -54,8 +56,12 @@ class MasteryCard extends StatelessWidget {
       );
 
   Color _getColorForScore(double score) {
-    if (score >= 0.7) return Colors.green;
-    if (score >= 0.5) return Colors.orange;
+    if (score >= 0.7) {
+      return Colors.green;
+    }
+    if (score >= 0.5) {
+      return Colors.orange;
+    }
     return Colors.red;
   }
 }

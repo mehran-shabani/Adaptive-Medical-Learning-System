@@ -3,6 +3,7 @@ Main FastAPI application entry point.
 """
 
 import logging
+import os
 import time
 
 from fastapi import FastAPI, Request
@@ -62,7 +63,7 @@ async def add_process_time_header(request: Request, call_next):
 
 # Exception handlers
 @app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
+async def global_exception_handler(request: Request, exc: Exception):  # noqa: ARG001
     """Global exception handler for unhandled exceptions."""
     logger.error(f"Unhandled exception: {exc}", exc_info=True)
     return JSONResponse(
@@ -136,8 +137,6 @@ async def startup_event():
     logger.info(f"Debug mode: {settings.DEBUG}")
 
     # Create upload directory if it doesn't exist
-    import os
-
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
     logger.info(f"Upload directory: {settings.UPLOAD_DIR}")
 

@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.users.models import User
-from app.utils.security import create_access_token, generate_otp
+from app.utils.security import create_access_token, decode_access_token, generate_otp
 from app.utils.timestamps import is_expired, utcnow
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ class AuthService:
     """Service class for authentication operations."""
 
     @staticmethod
-    def generate_and_send_otp(phone_number: str, db: Session) -> tuple[str, int]:
+    def generate_and_send_otp(phone_number: str, db: Session) -> tuple[str, int]:  # noqa: ARG004
         """
         Generate OTP and send to user's phone.
 
@@ -166,8 +166,6 @@ class AuthService:
         Raises:
             HTTPException: If token is invalid or user not found
         """
-        from app.utils.security import decode_access_token
-
         # Decode token
         payload = decode_access_token(token)
 

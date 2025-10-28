@@ -22,14 +22,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     super.initState();
     // Load mastery data on screen init
     Future.microtask(() {
-      // TODO: Load user mastery
+      // TODO(dev): Load user mastery
       // ref.read(dashboardProvider.notifier).loadMastery();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Watch dashboard provider state
+    // TODO(dev): Watch dashboard provider state
     // final dashboardState = ref.watch(dashboardProvider);
 
     return Scaffold(
@@ -39,7 +39,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
-              // TODO: Implement logout
+              // TODO(dev): Implement logout
               // ref.read(authProvider.notifier).logout();
               // Navigate to login
             },
@@ -48,7 +48,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          // TODO: Refresh mastery data
+          // TODO(dev): Refresh mastery data
           // await ref.read(dashboardProvider.notifier).loadMastery();
         },
         child: ListView(
@@ -66,7 +66,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 16),
-                    // TODO: Display actual mastery percentage
+                    // TODO(dev): Display actual mastery percentage
                     LinearProgressIndicator(
                       value: 0.65,
                       minHeight: 8,
@@ -87,7 +87,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             ),
             const SizedBox(height: 8),
 
-            // TODO: Map through actual mastery data
+            // TODO(dev): Map through actual mastery data
             // Example mastery cards
             const MasteryCard(
               systemName: 'قلب و عروق',
@@ -110,7 +110,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             // Action buttons
             ElevatedButton.icon(
               onPressed: () {
-                // TODO: Navigate to study plan screen
+                // TODO(dev): Navigate to study plan screen
                 // Navigator.of(context).push(
                 //   MaterialPageRoute(
                 //     builder: (context) => const StudyPlanScreen(),
@@ -123,7 +123,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             const SizedBox(height: 12),
             OutlinedButton.icon(
               onPressed: () {
-                // TODO: Navigate to quiz screen
+                // TODO(dev): Navigate to quiz screen
               },
               icon: const Icon(Icons.quiz),
               label: const Text('شروع تست'),

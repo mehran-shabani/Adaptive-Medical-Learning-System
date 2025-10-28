@@ -89,7 +89,7 @@ async def verify_otp(request: OTPVerify, db: Session = Depends(get_db)):
 
 @router.get("/me")
 async def get_current_user_info(
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db),  # noqa: ARG001
     # TODO: Add authentication dependency
     # current_user: User = Depends(get_current_user_dependency)
 ):

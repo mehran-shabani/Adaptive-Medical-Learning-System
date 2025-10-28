@@ -55,7 +55,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           const SnackBar(content: Text('کد تایید ارسال شد')),
         );
       }
-    } catch (e) {
+    } on Exception catch (e) {
       setState(() {
         _isLoading = false;
       });
@@ -93,9 +93,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       // Navigate to dashboard on success
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/dashboard');
+        await Navigator.of(context).pushReplacementNamed('/dashboard');
       }
-    } catch (e) {
+    } on Exception catch (e) {
       setState(() {
         _isLoading = false;
       });
