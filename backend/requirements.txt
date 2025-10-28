@@ -25,6 +25,7 @@ python-dotenv==1.2.1
 # HTTP Clients
 httpx==0.26.0
 requests==2.32.4
+kavenegar==1.1.3
 
 # PDF Processing
 pdfminer.six==20221105

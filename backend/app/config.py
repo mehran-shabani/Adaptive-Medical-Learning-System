@@ -69,6 +69,7 @@ class Settings(BaseSettings):
     OTP_EXPIRY_MINUTES: int = 5
     OTP_PROVIDER: str = "mock"  # Options: mock, kavenegar
     KAVENEGAR_API_KEY: str | None = None
+    KAVENEGAR_OTP_TEMPLATE: str | None = None
 
     class Config:
         env_file = ".env"
