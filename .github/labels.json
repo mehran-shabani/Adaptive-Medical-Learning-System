@@ -1,0 +1,157 @@
+[
+  {
+    "name": "bug",
+    "color": "d73a4a",
+    "description": "Something isn't working correctly"
+  },
+  {
+    "name": "feature",
+    "color": "0e8a16",
+    "description": "New feature or request"
+  },
+  {
+    "name": "tech-debt",
+    "color": "fbca04",
+    "description": "Technical debt or refactoring needed"
+  },
+  {
+    "name": "docs",
+    "color": "0075ca",
+    "description": "Documentation improvements or additions"
+  },
+  {
+    "name": "infra",
+    "color": "5319e7",
+    "description": "Infrastructure, DevOps, or deployment related"
+  },
+  {
+    "name": "high-priority",
+    "color": "b60205",
+    "description": "Critical issue requiring immediate attention"
+  },
+  {
+    "name": "blocked",
+    "color": "d93f0b",
+    "description": "Blocked by another issue or external dependency"
+  },
+  {
+    "name": "good first issue",
+    "color": "7057ff",
+    "description": "Good for newcomers to the project"
+  },
+  {
+    "name": "help wanted",
+    "color": "008672",
+    "description": "Extra attention is needed from contributors"
+  },
+  {
+    "name": "question",
+    "color": "d876e3",
+    "description": "Further information is requested"
+  },
+  {
+    "name": "wontfix",
+    "color": "ffffff",
+    "description": "This will not be worked on"
+  },
+  {
+    "name": "duplicate",
+    "color": "cfd3d7",
+    "description": "This issue or PR already exists"
+  },
+  {
+    "name": "invalid",
+    "color": "e4e669",
+    "description": "This doesn't seem right or valid"
+  },
+  {
+    "name": "backend",
+    "color": "1d76db",
+    "description": "Related to backend/API (FastAPI, Python)"
+  },
+  {
+    "name": "frontend",
+    "color": "02d7f2",
+    "description": "Related to frontend (Flutter, Dart)"
+  },
+  {
+    "name": "database",
+    "color": "d4c5f9",
+    "description": "Database schema, migrations, or queries"
+  },
+  {
+    "name": "security",
+    "color": "ee0701",
+    "description": "Security vulnerability or enhancement"
+  },
+  {
+    "name": "performance",
+    "color": "f9d0c4",
+    "description": "Performance improvement or issue"
+  },
+  {
+    "name": "dependencies",
+    "color": "0366d6",
+    "description": "Dependency updates or issues"
+  },
+  {
+    "name": "ci-cd",
+    "color": "bfd4f2",
+    "description": "Continuous Integration/Deployment related"
+  },
+  {
+    "name": "automated",
+    "color": "ededed",
+    "description": "Created by automation (bots, scripts)"
+  },
+  {
+    "name": "breaking-change",
+    "color": "d73a4a",
+    "description": "Introduces breaking changes to API or functionality"
+  },
+  {
+    "name": "enhancement",
+    "color": "a2eeef",
+    "description": "Improvement to existing feature"
+  },
+  {
+    "name": "testing",
+    "color": "bfe5bf",
+    "description": "Related to testing infrastructure or test coverage"
+  },
+  {
+    "name": "ux-ui",
+    "color": "ff69b4",
+    "description": "User experience or interface improvements"
+  },
+  {
+    "name": "accessibility",
+    "color": "c2e0c6",
+    "description": "Accessibility improvements"
+  },
+  {
+    "name": "medical-content",
+    "color": "ff9f1c",
+    "description": "Related to medical educational content"
+  },
+  {
+    "name": "ai-ml",
+    "color": "8b5cf6",
+    "description": "AI/ML models, embeddings, or LLM integration"
+  },
+  {
+    "name": "quiz",
+    "color": "fef2c0",
+    "description": "Quiz generation or quiz-related features"
+  },
+  {
+    "name": "mastery",
+    "color": "c5def5",
+    "description": "Mastery tracking and assessment"
+  },
+  {
+    "name": "recommender",
+    "color": "bfdadc",
+    "description": "Learning path recommendations"
+  }
+]
