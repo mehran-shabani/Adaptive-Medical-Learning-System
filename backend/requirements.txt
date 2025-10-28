@@ -20,7 +20,7 @@ pydantic-settings==2.1.0
 # Authentication & Security
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
-python-dotenv==1.0.0
+python-dotenv==1.2.1
 
 # HTTP Clients
 httpx==0.26.0
