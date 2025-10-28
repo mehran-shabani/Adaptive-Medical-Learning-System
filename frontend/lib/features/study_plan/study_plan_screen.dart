@@ -1,7 +1,6 @@
+import 'package:adaptivemed_mobile/widgets/plan_block_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../widgets/plan_block_card.dart';
 
 /// Study plan screen showing recommended study blocks
 ///

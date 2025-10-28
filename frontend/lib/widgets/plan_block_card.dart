@@ -3,12 +3,7 @@ import 'package:flutter/material.dart';
 /// Widget for displaying a study plan block
 class PlanBlockCard extends StatelessWidget {
   const PlanBlockCard({
-    super.key,
-    required this.topic,
-    required this.priority,
-    required this.durationMinutes,
-    required this.currentMastery,
-    required this.reason,
+    required this.topic, required this.priority, required this.durationMinutes, required this.currentMastery, required this.reason, super.key,
   });
   final String topic;
   final String priority;
@@ -64,7 +59,7 @@ class PlanBlockCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                         child:
-                            Text(reason, style: const TextStyle(fontSize: 12))),
+                            Text(reason, style: const TextStyle(fontSize: 12)),),
                   ],
                 ),
               ),

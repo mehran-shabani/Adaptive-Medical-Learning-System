@@ -1,24 +1,26 @@
 """
 Main FastAPI application entry point.
 """
+
+import logging
+import time
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-import time
-import logging
 
-from app.config import settings
 from app.auth.router import router as auth_router
-from app.users.router import router as users_router
+from app.config import settings
 from app.content.router import router as content_router
-from app.quiz.router import router as quiz_router
 from app.mastery.router import router as mastery_router
+from app.quiz.router import router as quiz_router
 from app.recommender.router import router as recommender_router
+from app.users.router import router as users_router
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO if not settings.DEBUG else logging.DEBUG,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
@@ -39,7 +41,7 @@ app.add_middleware(
         "http://127.0.0.1:*",
         "http://10.0.2.2:*",  # Android emulator
         "http://192.168.*.*:*",  # Local network
-        "*"  # Allow all for development - restrict in production
+        "*",  # Allow all for development - restrict in production
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -67,8 +69,8 @@ async def global_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content={
             "detail": "Internal server error",
-            "error": str(exc) if settings.DEBUG else "An unexpected error occurred"
-        }
+            "error": str(exc) if settings.DEBUG else "An unexpected error occurred",
+        },
     )
 
 
@@ -77,22 +79,19 @@ async def global_exception_handler(request: Request, exc: Exception):
 async def health_check():
     """
     Health check endpoint.
-    
+
     Public endpoint - no authentication required.
-    
+
     Returns:
         dict: Application health status
-        
+
     Response:
         {
             "status": "ok",
             "version": "0.1.0"
         }
     """
-    return {
-        "status": "ok",
-        "version": "0.1.0"
-    }
+    return {"status": "ok", "version": "0.1.0"}
 
 
 # Root endpoint
@@ -100,9 +99,9 @@ async def health_check():
 async def root():
     """
     Root endpoint.
-    
+
     Public endpoint - no authentication required.
-    
+
     Returns:
         dict: Welcome message and API information
     """
@@ -111,46 +110,22 @@ async def root():
         "docs": "/docs",
         "health": "/health",
         "version": "0.1.0",
-        "note": "Version 0.1.0 is currently in development"
+        "note": "Version 0.1.0 is currently in development",
     }
 
 
 # Include routers
-app.include_router(
-    auth_router,
-    prefix=f"{settings.API_V1_PREFIX}/auth",
-    tags=["Authentication"]
-)
+app.include_router(auth_router, prefix=f"{settings.API_V1_PREFIX}/auth", tags=["Authentication"])
 
-app.include_router(
-    users_router,
-    prefix=f"{settings.API_V1_PREFIX}/users",
-    tags=["Users"]
-)
+app.include_router(users_router, prefix=f"{settings.API_V1_PREFIX}/users", tags=["Users"])
 
-app.include_router(
-    content_router,
-    prefix=f"{settings.API_V1_PREFIX}/content",
-    tags=["Content"]
-)
+app.include_router(content_router, prefix=f"{settings.API_V1_PREFIX}/content", tags=["Content"])
 
-app.include_router(
-    quiz_router,
-    prefix=f"{settings.API_V1_PREFIX}/quiz",
-    tags=["Quiz"]
-)
+app.include_router(quiz_router, prefix=f"{settings.API_V1_PREFIX}/quiz", tags=["Quiz"])
 
-app.include_router(
-    mastery_router,
-    prefix=f"{settings.API_V1_PREFIX}/mastery",
-    tags=["Mastery"]
-)
+app.include_router(mastery_router, prefix=f"{settings.API_V1_PREFIX}/mastery", tags=["Mastery"])
 
-app.include_router(
-    recommender_router,
-    prefix=f"{settings.API_V1_PREFIX}/recommender",
-    tags=["Recommender"]
-)
+app.include_router(recommender_router, prefix=f"{settings.API_V1_PREFIX}/recommender", tags=["Recommender"])
 
 
 @app.on_event("startup")
@@ -159,9 +134,10 @@ async def startup_event():
     logger.info(f"Starting {settings.APP_NAME}")
     logger.info(f"Environment: {settings.ENVIRONMENT}")
     logger.info(f"Debug mode: {settings.DEBUG}")
-    
+
     # Create upload directory if it doesn't exist
     import os
+
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
     logger.info(f"Upload directory: {settings.UPLOAD_DIR}")
 

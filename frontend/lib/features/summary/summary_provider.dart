@@ -1,10 +1,10 @@
+import 'package:adaptivemed_mobile/core/api/content_api_service.dart';
+import 'package:adaptivemed_mobile/core/models/summary_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/api/content_api_service.dart';
-import '../../core/models/summary_model.dart';
 
 /// Summary state provider
 final summaryProvider = StateNotifierProvider<SummaryNotifier, SummaryState>(
-    (ref) => SummaryNotifier());
+    (ref) => SummaryNotifier(),);
 
 /// Summary state
 class SummaryState {
@@ -36,7 +36,7 @@ class SummaryNotifier extends StateNotifier<SummaryState> {
 
   /// Load topic summary with citations
   Future<void> loadSummary({required int topicId}) async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
+    state = state.copyWith(isLoading: true);
 
     try {
       final data = await _contentService.getTopicSummary(topicId);

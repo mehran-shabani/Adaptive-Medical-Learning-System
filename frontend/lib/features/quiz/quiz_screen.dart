@@ -1,6 +1,6 @@
+import 'package:adaptivemed_mobile/widgets/quiz_option_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../widgets/quiz_option_tile.dart';
 
 /// Quiz screen for answering MCQ questions
 ///
@@ -11,8 +11,7 @@ import '../../widgets/quiz_option_tile.dart';
 /// - Immediate feedback after submission
 class QuizScreen extends ConsumerStatefulWidget {
   const QuizScreen({
-    super.key,
-    required this.topicId,
+    required this.topicId, super.key,
   });
   final int topicId;
 
@@ -63,14 +62,14 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('تست'),
-        actions: [
+        actions: const [
           // Question counter
           Center(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.symmetric(horizontal: 16),
               child: Text(
                 '۱/۵', // TODO: Use actual question count
-                style: const TextStyle(fontSize: 16),
+                style: TextStyle(fontSize: 16),
               ),
             ),
           ),

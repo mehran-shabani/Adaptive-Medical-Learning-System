@@ -1,5 +1,5 @@
+import 'package:adaptivemed_mobile/core/api/auth_api_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/api/auth_api_service.dart';
 
 /// Auth state provider
 ///
@@ -45,7 +45,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   /// Request OTP for phone number
   Future<void> requestOTP(String phoneNumber) async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
+    state = state.copyWith(isLoading: true);
 
     try {
       await _authService.loginWithOTP(phoneNumber);
@@ -61,7 +61,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   /// Verify OTP and authenticate user
   Future<void> verifyOTP(String phoneNumber, String otpCode) async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
+    state = state.copyWith(isLoading: true);
 
     try {
       final result = await _authService.verifyOTP(phoneNumber, otpCode);

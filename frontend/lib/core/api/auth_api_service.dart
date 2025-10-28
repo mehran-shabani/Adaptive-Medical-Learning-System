@@ -1,17 +1,18 @@
 import 'dart:convert';
 import 'dart:io';
+
+import 'package:adaptivemed_mobile/core/config/api_config.dart';
+import 'package:adaptivemed_mobile/core/storage/secure_storage.dart';
 import 'package:http/http.dart' as http;
-import '../storage/secure_storage.dart';
-import '../config/api_config.dart';
 
 /// Authentication API service
-/// 
+///
 /// Handles OTP login flow and JWT token management.
 class AuthApiService {
   final SecureStorageService _storage = SecureStorageService();
-  
+
   /// Request OTP for phone number
-  /// 
+  ///
   /// POST /auth/login-otp
   /// Request: { "phone_number": "+98912xxxxxxx" }
   /// Response: { "status": "otp_sent" }
@@ -26,7 +27,8 @@ class AuthApiService {
           .timeout(ApiConfig.requestTimeout);
 
       if (response.statusCode == 200) {
-        return jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+        return jsonDecode(utf8.decode(response.bodyBytes))
+            as Map<String, dynamic>;
       } else if (response.statusCode == 400) {
         final error = jsonDecode(utf8.decode(response.bodyBytes));
         throw Exception(error['detail'] ?? 'Invalid phone number');
@@ -41,9 +43,9 @@ class AuthApiService {
       throw Exception('Failed to send OTP: ${e.toString()}');
     }
   }
-  
+
   /// Verify OTP and get JWT token
-  /// 
+  ///
   /// POST /auth/verify-otp
   /// Request: { "phone_number": "+98912xxxxxxx", "otp_code": "1234" }
   /// Response: { "access_token": "<JWT>", "user_id": 42, "role": "student" }
@@ -64,7 +66,8 @@ class AuthApiService {
           .timeout(ApiConfig.requestTimeout);
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+        final data =
+            jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
 
         // Save authentication data securely
         await _storage.saveAccessToken(data['access_token'] as String);
@@ -88,7 +91,7 @@ class AuthApiService {
       throw Exception('Failed to verify OTP: ${e.toString()}');
     }
   }
-  
+
   /// Logout and clear stored tokens
   Future<void> logout() async {
     await _storage.clearAuthData();

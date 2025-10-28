@@ -18,7 +18,7 @@ class SecureStorageService {
 
   /// Retrieve JWT access token
   Future<String?> getAccessToken() async =>
-      await _storage.read(key: _keyAccessToken);
+      _storage.read(key: _keyAccessToken);
 
   /// Save user ID
   Future<void> saveUserId(int userId) async {
@@ -37,7 +37,7 @@ class SecureStorageService {
   }
 
   /// Retrieve user role
-  Future<String?> getUserRole() async => await _storage.read(key: _keyUserRole);
+  Future<String?> getUserRole() async => _storage.read(key: _keyUserRole);
 
   /// Check if user is authenticated (has valid token)
   Future<bool> isAuthenticated() async {

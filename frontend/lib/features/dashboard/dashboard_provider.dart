@@ -1,11 +1,11 @@
+import 'package:adaptivemed_mobile/core/api/dashboard_api_service.dart';
+import 'package:adaptivemed_mobile/core/models/mastery_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/api/dashboard_api_service.dart';
-import '../../core/models/mastery_model.dart';
 
 /// Dashboard state provider
 final dashboardProvider =
     StateNotifierProvider<DashboardNotifier, DashboardState>(
-        (ref) => DashboardNotifier());
+        (ref) => DashboardNotifier(),);
 
 /// Dashboard state
 class DashboardState {
@@ -37,13 +37,13 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
 
   /// Load user mastery data
   Future<void> loadMastery() async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
+    state = state.copyWith(isLoading: true);
 
     try {
       final masteryDataList = await _dashboardService.getUserMastery();
 
       final topics =
-          masteryDataList.map((item) => MasteryModel.fromJson(item)).toList();
+          masteryDataList.map(MasteryModel.fromJson).toList();
 
       state = state.copyWith(
         masteries: topics,

@@ -5,15 +5,13 @@ class StudyPlanModel {
     required this.blocks,
   });
 
-  factory StudyPlanModel.fromJson(Map<String, dynamic> json) {
-    return StudyPlanModel(
+  factory StudyPlanModel.fromJson(Map<String, dynamic> json) => StudyPlanModel(
       durationMinutes: json['duration_minutes'] as int,
       blocks: (json['blocks'] as List)
           .map((block) =>
-              StudyBlockModel.fromJson(block as Map<String, dynamic>))
+              StudyBlockModel.fromJson(block as Map<String, dynamic>),)
           .toList(),
     );
-  }
   final int durationMinutes;
   final List<StudyBlockModel> blocks;
 }
@@ -30,8 +28,7 @@ class StudyBlockModel {
     required this.currentMastery,
   });
 
-  factory StudyBlockModel.fromJson(Map<String, dynamic> json) {
-    return StudyBlockModel(
+  factory StudyBlockModel.fromJson(Map<String, dynamic> json) => StudyBlockModel(
       topicId: json['topic_id'] as int,
       topic: json['topic'] as String,
       durationMinutes: json['duration_minutes'] as int,
@@ -40,7 +37,6 @@ class StudyBlockModel {
       reason: json['reason'] as String? ?? '',
       currentMastery: (json['current_mastery'] as num?)?.toDouble() ?? 0.0,
     );
-  }
   final int topicId;
   final String topic;
   final int durationMinutes;

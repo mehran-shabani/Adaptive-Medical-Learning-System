@@ -1,11 +1,11 @@
+import 'package:adaptivemed_mobile/core/theme/app_theme.dart';
+import 'package:adaptivemed_mobile/features/auth/login_screen.dart';
+import 'package:adaptivemed_mobile/features/dashboard/dashboard_screen.dart';
+import 'package:adaptivemed_mobile/features/quiz/quiz_screen.dart';
+import 'package:adaptivemed_mobile/features/study_plan/study_plan_screen.dart';
+import 'package:adaptivemed_mobile/features/summary/summary_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'core/theme/app_theme.dart';
-import 'features/auth/login_screen.dart';
-import 'features/dashboard/dashboard_screen.dart';
-import 'features/study_plan/study_plan_screen.dart';
-import 'features/quiz/quiz_screen.dart';
-import 'features/summary/summary_screen.dart';
 
 /// Main entry point for AdaptiveMed Flutter application
 ///

@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 /// Widget for displaying mastery progress for a body system
 class MasteryCard extends StatelessWidget {
   const MasteryCard({
-    super.key,
-    required this.systemName,
-    required this.masteryScore,
+    required this.systemName, required this.masteryScore, super.key,
     this.lastReviewedDaysAgo,
   });
   final String systemName;

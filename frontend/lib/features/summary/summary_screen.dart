@@ -1,6 +1,6 @@
+import 'package:adaptivemed_mobile/widgets/keypoint_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../widgets/keypoint_card.dart';
 
 /// Summary screen showing topic content with citations
 ///
@@ -10,8 +10,7 @@ import '../../widgets/keypoint_card.dart';
 /// - Source citations for transparency
 class SummaryScreen extends ConsumerStatefulWidget {
   const SummaryScreen({
-    super.key,
-    required this.topicId,
+    required this.topicId, super.key,
   });
   final int topicId;
 

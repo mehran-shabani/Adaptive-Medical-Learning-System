@@ -27,7 +27,6 @@ class AppTheme {
           error: errorRed,
           background: backgroundLight,
           surface: surfaceWhite,
-          brightness: Brightness.light,
         ),
 
         // App bar theme

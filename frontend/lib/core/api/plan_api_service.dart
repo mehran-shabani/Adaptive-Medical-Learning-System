@@ -1,17 +1,18 @@
 import 'dart:convert';
 import 'dart:io';
+
+import 'package:adaptivemed_mobile/core/config/api_config.dart';
+import 'package:adaptivemed_mobile/core/storage/secure_storage.dart';
 import 'package:http/http.dart' as http;
-import '../storage/secure_storage.dart';
-import '../config/api_config.dart';
 
 /// Study Plan API service
-/// 
+///
 /// Fetches personalized study plans based on spaced repetition.
 class PlanApiService {
   final SecureStorageService _storage = SecureStorageService();
-  
+
   /// Get personalized study plan
-  /// 
+  ///
   /// POST /recommender/study-plan
   /// Headers: Authorization: Bearer <JWT>
   /// Body: { "user_id": 1, "duration_minutes": 120, "include_quiz": true }
@@ -46,7 +47,8 @@ class PlanApiService {
           .timeout(ApiConfig.requestTimeout);
 
       if (response.statusCode == 200) {
-        return jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+        return jsonDecode(utf8.decode(response.bodyBytes))
+            as Map<String, dynamic>;
       } else if (response.statusCode == 401) {
         throw Exception('Authentication failed. Please login again.');
       } else if (response.statusCode == 404) {

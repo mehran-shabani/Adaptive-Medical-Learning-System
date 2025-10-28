@@ -3,11 +3,7 @@ import 'package:flutter/material.dart';
 /// Widget for displaying a quiz option (A, B, C, D)
 class QuizOptionTile extends StatelessWidget {
   const QuizOptionTile({
-    super.key,
-    required this.label,
-    required this.text,
-    required this.isSelected,
-    required this.onTap,
+    required this.label, required this.text, required this.isSelected, required this.onTap, super.key,
   });
   final String label;
   final String text;

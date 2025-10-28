@@ -1,7 +1,6 @@
+import 'package:adaptivemed_mobile/widgets/mastery_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../widgets/mastery_card.dart';
 
 /// Dashboard screen showing user mastery across topics
 ///

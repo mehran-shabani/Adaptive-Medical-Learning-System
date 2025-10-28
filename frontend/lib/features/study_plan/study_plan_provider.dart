@@ -1,11 +1,11 @@
+import 'package:adaptivemed_mobile/core/api/plan_api_service.dart';
+import 'package:adaptivemed_mobile/core/models/study_plan_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/api/plan_api_service.dart';
-import '../../core/models/study_plan_model.dart';
 
 /// Study plan state provider
 final studyPlanProvider =
     StateNotifierProvider<StudyPlanNotifier, StudyPlanState>(
-        (ref) => StudyPlanNotifier());
+        (ref) => StudyPlanNotifier(),);
 
 /// Study plan state
 class StudyPlanState {
@@ -40,7 +40,7 @@ class StudyPlanNotifier extends StateNotifier<StudyPlanState> {
     int durationMinutes = 120,
     bool includeQuiz = true,
   }) async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
+    state = state.copyWith(isLoading: true);
 
     try {
       final data = await _planService.getStudyPlan(

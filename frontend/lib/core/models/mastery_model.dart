@@ -8,15 +8,13 @@ class MasteryModel {
     this.lastReviewedAt,
   });
 
-  factory MasteryModel.fromJson(Map<String, dynamic> json) {
-    return MasteryModel(
+  factory MasteryModel.fromJson(Map<String, dynamic> json) => MasteryModel(
       topicId: json['topic_id'] as int,
       topicName: json['topic_name'] as String,
       systemName: json['system_name'] as String,
       masteryScore: (json['mastery_score'] as num).toDouble(),
       lastReviewedAt: json['last_reviewed_at'] as String?,
     );
-  }
   final int topicId;
   final String topicName;
   final String systemName;

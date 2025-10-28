@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+
+import 'package:adaptivemed_mobile/core/config/api_config.dart';
+import 'package:adaptivemed_mobile/core/storage/secure_storage.dart';
 import 'package:http/http.dart' as http;
-import '../storage/secure_storage.dart';
-import '../config/api_config.dart';
 
 /// Content API service
 ///

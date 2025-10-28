@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 /// Widget for displaying a key point in topic summary
 class KeypointCard extends StatelessWidget {
   const KeypointCard({
-    super.key,
-    required this.title,
-    required this.content,
+    required this.title, required this.content, super.key,
   });
   final String title;
   final String content;

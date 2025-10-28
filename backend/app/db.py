@@ -1,10 +1,12 @@
 """
 Database session management and base model.
 """
+
+from collections.abc import Generator
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
-from typing import Generator
+from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import settings
 
@@ -25,10 +27,10 @@ Base = declarative_base()
 def get_db() -> Generator[Session, None, None]:
     """
     Dependency function to get database session.
-    
+
     Yields:
         Session: SQLAlchemy database session
-        
+
     Example:
         @app.get("/items")
         def read_items(db: Session = Depends(get_db)):
@@ -45,12 +47,8 @@ def init_db():
     """
     Initialize database tables.
     This will create all tables defined in models.
-    
+
     Note: In production, use Alembic migrations instead.
     """
-    from app.users.models import User
-    from app.content.models import Topic, Chunk
-    from app.quiz.models import QuizQuestion, QuizAnswer
-    from app.mastery.models import Mastery, StudyPlanLog
-    
+
     Base.metadata.create_all(bind=engine)

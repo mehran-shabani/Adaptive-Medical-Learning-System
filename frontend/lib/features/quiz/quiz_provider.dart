@@ -1,6 +1,6 @@
+import 'package:adaptivemed_mobile/core/api/quiz_api_service.dart';
+import 'package:adaptivemed_mobile/core/models/quiz_question_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/api/quiz_api_service.dart';
-import '../../core/models/quiz_question_model.dart';
 
 /// Quiz state provider
 final quizProvider =
@@ -47,7 +47,7 @@ class QuizNotifier extends StateNotifier<QuizState> {
     required int topicId,
     int count = 5,
   }) async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
+    state = state.copyWith(isLoading: true);
 
     try {
       final data = await _quizService.generateQuiz(
@@ -100,7 +100,6 @@ class QuizNotifier extends StateNotifier<QuizState> {
     if (state.currentQuestionIndex < state.questions.length - 1) {
       state = state.copyWith(
         currentQuestionIndex: state.currentQuestionIndex + 1,
-        lastAnswerResult: null,
       );
     }
   }
