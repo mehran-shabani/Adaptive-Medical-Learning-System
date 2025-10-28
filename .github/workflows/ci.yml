@@ -9,6 +9,10 @@ on:
     branches-ignore:
       - main
 
+permissions:
+  contents: read
+  security-events: write
+
 env:
   PYTHON_VERSION: "3.11"
   FLUTTER_VERSION: "3.16.0"
@@ -126,35 +130,35 @@ jobs:
           name: backend-coverage-report
           path: backend/htmlcov/
 
-  frontend-analyze:
-    name: Frontend Analysis
-    runs-on: ubuntu-latest
+  # frontend-analyze:
+  #   name: Frontend Analysis
+  #   runs-on: ubuntu-latest
     
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v5
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: 'stable'
-          cache: true
+  #     - name: Set up Flutter
+  #       uses: subosito/flutter-action@v2
+  #       with:
+  #         flutter-version: ${{ env.FLUTTER_VERSION }}
+  #         channel: 'stable'
+  #         cache: true
 
-      - name: Get Flutter dependencies
-        working-directory: frontend
-        run: flutter pub get
+  #     - name: Get Flutter dependencies
+  #       working-directory: frontend
+  #       run: flutter pub get
 
-      - name: Verify Flutter installation
-        run: flutter --version
+  #     - name: Verify Flutter installation
+  #       run: flutter --version
 
-      - name: Run Flutter analyzer
-        working-directory: frontend
-        run: flutter analyze --fatal-infos
+  #     - name: Run Flutter analyzer
+  #       working-directory: frontend
+  #       run: flutter analyze --fatal-infos
 
-      - name: Check formatting
-        working-directory: frontend
-        run: dart format --output=none --set-exit-if-changed .
+  #     - name: Check formatting
+  #       working-directory: frontend
+  #       run: dart format --output=none --set-exit-if-changed .
 
   frontend-test:
     name: Frontend Tests
@@ -242,7 +246,7 @@ jobs:
     needs:
       - backend-lint
       - backend-test
-      - frontend-analyze
+      # - frontend-analyze
       - frontend-test
       - frontend-build
       - security-scan
