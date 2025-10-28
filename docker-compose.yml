@@ -1,0 +1,200 @@
+version: '3.8'
+
+services:
+  # PostgreSQL with pgvector extension
+  db:
+    image: pgvector/pgvector:pg15
+    container_name: adaptive_learning_db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-adaptive_medical_learning}
+      POSTGRES_USER: ${POSTGRES_USER:-medical_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-medical_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-medical_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - adaptive_learning_network
+
+  # Redis for caching and Celery broker
+  redis:
+    image: redis:7-alpine
+    container_name: adaptive_learning_redis
+    # Ports exposed in docker-compose.override.yml for development only
+    # Uncomment for local development if not using override file:
+    # ports:
+    #   - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - adaptive_learning_network
+
+  # FastAPI Backend Application
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: adaptive_learning_api
+    ports:
+      - "8000:8000"
+    environment:
+      # Database configuration
+      DATABASE_URL: postgresql://${POSTGRES_USER:-medical_user}:${POSTGRES_PASSWORD:-medical_password}@db:5432/${POSTGRES_DB:-adaptive_medical_learning}
+      
+      # Redis configuration
+      REDIS_URL: redis://redis:6379/0
+      
+      # JWT configuration (REQUIRED - set in .env file)
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?ERROR: JWT_SECRET_KEY is required. Generate with 'openssl rand -hex 32' and set in .env file}
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      
+      # OpenAI/LLM configuration (REQUIRED - set in .env file)
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?ERROR: OPENAI_API_KEY is required. Get your key from https://platform.openai.com/api-keys}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-3-small}
+      LLM_MODEL: ${LLM_MODEL:-gpt-4o-mini}
+      
+      # Application settings
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      DEBUG: ${DEBUG:-true}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      
+      # CORS settings
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:8080}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/uploads:/app/uploads
+    # Use ${UVICORN_RELOAD} for conditional reload (set in .env: UVICORN_RELOAD=--reload)
+    command: sh -c "uvicorn app.main:app --host 0.0.0.0 --port 8000 ${UVICORN_RELOAD:-}"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - adaptive_learning_network
+
+  # Celery Worker for background tasks
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: adaptive_learning_worker
+    environment:
+      # Database configuration
+      DATABASE_URL: postgresql://${POSTGRES_USER:-medical_user}:${POSTGRES_PASSWORD:-medical_password}@db:5432/${POSTGRES_DB:-adaptive_medical_learning}
+      
+      # Redis configuration
+      REDIS_URL: redis://redis:6379/0
+      
+      # OpenAI/LLM configuration
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-3-small}
+      LLM_MODEL: ${LLM_MODEL:-gpt-4o-mini}
+      
+      # Application settings
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/uploads:/app/uploads
+    command: celery -A app.celery_app worker --loglevel=info --concurrency=2
+    networks:
+      - adaptive_learning_network
+
+  # Celery Beat for scheduled tasks (optional)
+  beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: adaptive_learning_beat
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-medical_user}:${POSTGRES_PASSWORD:-medical_password}@db:5432/${POSTGRES_DB:-adaptive_medical_learning}
+      REDIS_URL: redis://redis:6379/0
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend/app:/app/app
+    command: celery -A app.celery_app beat --loglevel=info
+    networks:
+      - adaptive_learning_network
+
+  # Flower - Celery monitoring tool (optional, for development)
+  flower:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: adaptive_learning_flower
+    ports:
+      - "5555:5555"
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      # Flower authentication (REQUIRED for security)
+      # Set FLOWER_PASSWORD in .env file
+      FLOWER_BASIC_AUTH: ${FLOWER_USER:-admin}:${FLOWER_PASSWORD:?Set FLOWER_PASSWORD in .env for Flower web UI security}
+    depends_on:
+      - redis
+      - worker
+    command: celery -A app.celery_app flower --port=5555
+    networks:
+      - adaptive_learning_network
+
+  # TODO: Flutter Web (nginx serving)
+  # Uncomment when Flutter web build is ready for deployment
+  # web:
+  #   image: nginx:alpine
+  #   container_name: adaptive_learning_web
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - ./frontend/build/web:/usr/share/nginx/html:ro
+  #   depends_on:
+  #     - api
+  #   networks:
+  #     - adaptive_learning_network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  adaptive_learning_network:
+    driver: bridge
+
+# Development Tips:
+# 1. Copy .env.example to .env and configure your environment variables
+# 2. Start services: docker-compose up -d
+# 3. View logs: docker-compose logs -f [service_name]
+# 4. Stop services: docker-compose down
+# 5. Remove volumes: docker-compose down -v
+# 6. Access API docs: http://localhost:8000/docs
+# 7. Access Flower (Celery monitor): http://localhost:5555

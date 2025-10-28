@@ -1,0 +1,193 @@
+name: Health Check
+
+on:
+  schedule:
+    # Run daily at 9:00 AM UTC
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to check'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  STAGING_URL: "https://staging-api.your-domain.com"
+  PRODUCTION_URL: "https://api.your-domain.com"
+
+jobs:
+  health-check:
+    name: Check Service Health
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Determine environment URL
+        id: env_url
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            ENV="${{ inputs.environment }}"
+          else
+            ENV="production"
+          fi
+          
+          if [ "$ENV" == "staging" ]; then
+            URL="${{ env.STAGING_URL }}"
+          else
+            URL="${{ env.PRODUCTION_URL }}"
+          fi
+          
+          echo "environment=$ENV" >> $GITHUB_OUTPUT
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "🌐 Checking $ENV environment: $URL"
+
+      - name: Check backend health endpoint
+        id: backend_health
+        run: |
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "${{ steps.env_url.outputs.url }}/health" || echo "000")
+          echo "status_code=$RESPONSE" >> $GITHUB_OUTPUT
+          
+          if [ "$RESPONSE" == "200" ]; then
+            echo "✅ Backend health check passed (HTTP $RESPONSE)"
+          else
+            echo "❌ Backend health check failed (HTTP $RESPONSE)"
+            exit 1
+          fi
+
+      - name: Check API documentation endpoint
+        id: api_docs
+        run: |
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "${{ steps.env_url.outputs.url }}/docs" || echo "000")
+          echo "status_code=$RESPONSE" >> $GITHUB_OUTPUT
+          
+          if [ "$RESPONSE" == "200" ]; then
+            echo "✅ API docs accessible (HTTP $RESPONSE)"
+          else
+            echo "⚠️ API docs not accessible (HTTP $RESPONSE)"
+          fi
+
+      - name: Check database connectivity
+        id: db_check
+        run: |
+          RESPONSE=$(curl -s "${{ steps.env_url.outputs.url }}/health" | jq -r '.database' || echo "unknown")
+          echo "db_status=$RESPONSE" >> $GITHUB_OUTPUT
+          
+          if [ "$RESPONSE" == "healthy" ] || [ "$RESPONSE" == "ok" ]; then
+            echo "✅ Database connection healthy"
+          else
+            echo "❌ Database connection issue: $RESPONSE"
+            exit 1
+          fi
+
+      - name: Check Redis connectivity
+        id: redis_check
+        run: |
+          RESPONSE=$(curl -s "${{ steps.env_url.outputs.url }}/health" | jq -r '.redis' || echo "unknown")
+          echo "redis_status=$RESPONSE" >> $GITHUB_OUTPUT
+          
+          if [ "$RESPONSE" == "healthy" ] || [ "$RESPONSE" == "ok" ]; then
+            echo "✅ Redis connection healthy"
+          else
+            echo "⚠️ Redis connection issue: $RESPONSE"
+          fi
+
+      - name: Measure response time
+        id: response_time
+        run: |
+          START=$(date +%s%N)
+          curl -s "${{ steps.env_url.outputs.url }}/health" > /dev/null
+          END=$(date +%s%N)
+          DURATION=$(( (END - START) / 1000000 ))
+          
+          echo "response_time_ms=$DURATION" >> $GITHUB_OUTPUT
+          echo "⏱️ Response time: ${DURATION}ms"
+          
+          if [ "$DURATION" -gt 5000 ]; then
+            echo "⚠️ Response time is high (> 5 seconds)"
+          fi
+
+      - name: Health check summary
+        run: |
+          echo "## 🏥 Health Check Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment**: ${{ steps.env_url.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**URL**: ${{ steps.env_url.outputs.url }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Status | Details |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|--------|---------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend API | ✅ Healthy | HTTP ${{ steps.backend_health.outputs.status_code }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Database | ✅ Connected | ${{ steps.db_check.outputs.db_status }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Redis | ✅ Connected | ${{ steps.redis_check.outputs.redis_status }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Response Time | ⚡ ${{ steps.response_time.outputs.response_time_ms }}ms | - |" >> $GITHUB_STEP_SUMMARY
+
+  create-issue-on-failure:
+    name: Create Issue on Failure
+    runs-on: ubuntu-latest
+    needs: health-check
+    if: failure()
+    
+    permissions:
+      issues: write
+    
+    steps:
+      - name: Create issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `🚨 Health Check Failed - ${new Date().toISOString().split('T')[0]}`;
+            const body = `## Health Check Failure Report
+            
+            **Environment**: ${{ needs.health-check.outputs.environment || 'production' }}
+            **Timestamp**: ${new Date().toUTCString()}
+            **Workflow Run**: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            
+            ### Issue Details
+            
+            The automated health check has detected an issue with the deployed service.
+            
+            **Possible causes**:
+            - Service is down or unresponsive
+            - Database connection issues
+            - Redis connection issues
+            - Network problems
+            - High response times
+            
+            ### Action Required
+            
+            1. Check the service logs
+            2. Verify database and Redis connectivity
+            3. Check resource usage (CPU, memory, disk)
+            4. Review recent deployments
+            5. Investigate and resolve the issue
+            6. Close this issue once resolved
+            
+            ### Quick Links
+            
+            - [View Logs](link-to-logs)
+            - [Monitoring Dashboard](link-to-dashboard)
+            - [Deployment Checklist](./backend/DEPLOYMENT_CHECKLIST.md)
+            
+            ---
+            
+            _This issue was automatically created by the health check workflow._`;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['infra', 'high-priority', 'automated']
+            });
+
+      - name: Issue created
+        run: |
+          echo "❌ Health check failed - issue created for investigation"
