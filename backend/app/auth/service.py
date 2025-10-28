@@ -7,6 +7,9 @@ import logging
 from datetime import timedelta
 
 from fastapi import HTTPException, status
+from kavenegar import APIException as KavenegarAPIException
+from kavenegar import HTTPException as KavenegarHTTPException
+from kavenegar import KavenegarAPI
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -49,14 +52,29 @@ class AuthService:
         if settings.OTP_PROVIDER == "mock":
             logger.info(f"[MOCK] OTP for {phone_number}: {otp_code}")
         elif settings.OTP_PROVIDER == "kavenegar":
-            # TODO: Implement Kavenegar SMS integration
-            # Example:
-            # api = KavenegarAPI(settings.KAVENEGAR_API_KEY)
-            # api.sms_send({
-            #     'receptor': phone_number,
-            #     'message': f'Your verification code: {otp_code}'
-            # })
-            logger.info(f"Sending OTP via Kavenegar to {phone_number}")
+            if not settings.KAVENEGAR_API_KEY or not settings.KAVENEGAR_OTP_TEMPLATE:
+                logger.error("Kavenegar API key or template is not configured in environment variables")
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="OTP provider not configured",
+                )
+
+            try:
+                api = KavenegarAPI(settings.KAVENEGAR_API_KEY)
+                params = {
+                    "receptor": phone_number,
+                    "template": settings.KAVENEGAR_OTP_TEMPLATE,
+                    "token": otp_code,
+                    "type": "sms",
+                }
+                response = api.verify_lookup(params)
+                logger.info("OTP sent via Kavenegar: %s", response)
+            except (KavenegarAPIException, KavenegarHTTPException) as exc:
+                logger.exception("Failed to send OTP via Kavenegar: %s", exc)
+                raise HTTPException(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    detail="Failed to send OTP via SMS provider",
+                ) from exc
         else:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="OTP provider not configured")
 
