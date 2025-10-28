@@ -30,14 +30,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _requestOTP() async {
-    // TODO: Implement OTP request
+    if (_phoneController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('لطفاً شماره موبایل را وارد کنید')),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
     try {
       // Call auth provider to request OTP
-      // await ref.read(authProvider.notifier).requestOTP(_phoneController.text);
+      await ref.read(authProvider.notifier).requestOTP(_phoneController.text);
 
       setState(() {
         _otpSent = true;
@@ -63,28 +69,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _verifyOTP() async {
-    // TODO: Implement OTP verification
+    if (_otpController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('لطفاً کد تایید را وارد کنید')),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
     try {
       // Call auth provider to verify OTP
-      // await ref.read(authProvider.notifier).verifyOTP(
-      //   _phoneController.text,
-      //   _otpController.text,
-      // );
+      await ref.read(authProvider.notifier).verifyOTP(
+        _phoneController.text,
+        _otpController.text,
+      );
 
       setState(() {
         _isLoading = false;
       });
 
       // Navigate to dashboard on success
-      // if (mounted) {
-      //   Navigator.of(context).pushReplacement(
-      //     MaterialPageRoute(builder: (context) => const DashboardScreen()),
-      //   );
-      // }
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed('/dashboard');
+      }
     } catch (e) {
       setState(() {
         _isLoading = false;

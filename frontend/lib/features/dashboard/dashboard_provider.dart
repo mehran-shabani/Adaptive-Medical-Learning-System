@@ -36,16 +36,14 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
   final DashboardApiService _dashboardService = DashboardApiService();
 
   /// Load user mastery data
-  Future<void> loadMastery(int userId) async {
+  Future<void> loadMastery() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     try {
-      final data = await _dashboardService.getUserMastery(userId);
-      final topics = (data['topics'] as List?)
-              ?.map((topic) =>
-                  MasteryModel.fromJson(topic as Map<String, dynamic>))
-              .toList() ??
-          [];
+      final masteryDataList = await _dashboardService.getUserMastery();
+
+      final topics =
+          masteryDataList.map((item) => MasteryModel.fromJson(item)).toList();
 
       state = state.copyWith(
         masteries: topics,
@@ -56,6 +54,7 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
         isLoading: false,
         errorMessage: e.toString(),
       );
+      rethrow;
     }
   }
 }

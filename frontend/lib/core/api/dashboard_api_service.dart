@@ -1,42 +1,90 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../storage/secure_storage.dart';
+import 'dart:io';
 
-/// Dashboard/Mastery API service
-/// 
-/// Fetches user mastery data for dashboard display.
+import '../storage/secure_storage.dart';
+import 'package:http/http.dart' as http;
+
+import 'package:adaptivemed_mobile/core/config/api_config.dart';
+
+/// Dashboard API service
+///
+/// Fetches mastery data and user progress for dashboard.
 class DashboardApiService {
-  // TODO: Update with actual backend URL
-  static const String baseUrl = 'http://localhost:8000/api/v1';
-  
   final SecureStorageService _storage = SecureStorageService();
-  
-  /// Get user mastery dashboard
-  /// 
-  /// GET /user/{id}/mastery
-  /// Headers: Authorization: Bearer <JWT>
-  /// Response: { "user_id": 42, "topics": [...] }
-  Future<Map<String, dynamic>> getUserMastery(int userId) async {
-    final token = await _storage.getAccessToken();
-    
-    if (token == null) {
-      throw Exception('No authentication token found');
+
+  /// Get user's mastery across all topics
+  ///
+  /// GET /mastery/user/{user_id}
+  Future<List<Map<String, dynamic>>> getUserMastery() async {
+    try {
+      final token = await _storage.getAccessToken();
+      final userId = await _storage.getUserId();
+
+      if (token == null || userId == null) {
+        throw Exception('No authentication token found. Please login again.');
+      }
+
+      final response = await http.get(
+        Uri.parse('${ApiConfig.masteryByUser}/$userId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(ApiConfig.requestTimeout);
+
+      if (response.statusCode == 200) {
+        final data =
+            jsonDecode(utf8.decode(response.bodyBytes)) as List<dynamic>;
+        return data.cast<Map<String, dynamic>>();
+      } else if (response.statusCode == 401) {
+        throw Exception('Authentication failed. Please login again.');
+      } else {
+        throw Exception('Failed to load mastery data');
+      }
+    } on SocketException {
+      throw Exception('No internet connection. Please check your network.');
+    } on http.ClientException {
+      throw Exception('Connection error. Please try again.');
+    } catch (e) {
+      throw Exception('Failed to load mastery data: ${e.toString()}');
     }
-    
-    final response = await http.get(
-      Uri.parse('$baseUrl/mastery/$userId'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
-    
-    if (response.statusCode == 200) {
-      return jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
-    } else if (response.statusCode == 401) {
-      throw Exception('Authentication failed. Please login again.');
-    } else {
-      throw Exception('Failed to load mastery data: ${response.body}');
+  }
+
+  /// Get weak topics that need more study
+  ///
+  /// GET /mastery/user/{user_id}/weak-topics
+  Future<List<Map<String, dynamic>>> getWeakTopics() async {
+    try {
+      final token = await _storage.getAccessToken();
+      final userId = await _storage.getUserId();
+
+      if (token == null || userId == null) {
+        throw Exception('No authentication token found. Please login again.');
+      }
+
+      final response = await http.get(
+        Uri.parse(ApiConfig.masteryWeakTopics(userId)),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(ApiConfig.requestTimeout);
+
+      if (response.statusCode == 200) {
+        final data =
+            jsonDecode(utf8.decode(response.bodyBytes)) as List<dynamic>;
+        return data.cast<Map<String, dynamic>>();
+      } else if (response.statusCode == 401) {
+        throw Exception('Authentication failed. Please login again.');
+      } else {
+        throw Exception('Failed to load weak topics');
+      }
+    } on SocketException {
+      throw Exception('No internet connection. Please check your network.');
+    } on http.ClientException {
+      throw Exception('Connection error. Please try again.');
+    } catch (e) {
+      throw Exception('Failed to load weak topics: ${e.toString()}');
     }
   }
 }

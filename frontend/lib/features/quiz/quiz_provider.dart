@@ -45,14 +45,14 @@ class QuizNotifier extends StateNotifier<QuizState> {
   /// Load quiz questions for topic
   Future<void> loadQuiz({
     required int topicId,
-    int limit = 5,
+    int count = 5,
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     try {
       final data = await _quizService.generateQuiz(
         topicId: topicId,
-        limit: limit,
+        count: count,
       );
 
       final questions = data
@@ -69,6 +69,7 @@ class QuizNotifier extends StateNotifier<QuizState> {
         isLoading: false,
         errorMessage: e.toString(),
       );
+      rethrow;
     }
   }
 
@@ -90,6 +91,7 @@ class QuizNotifier extends StateNotifier<QuizState> {
       state = state.copyWith(lastAnswerResult: result);
     } catch (e) {
       state = state.copyWith(errorMessage: e.toString());
+      rethrow;
     }
   }
 

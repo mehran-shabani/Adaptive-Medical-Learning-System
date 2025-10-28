@@ -34,7 +34,13 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify allowed origins
+    allow_origins=[
+        "http://localhost:*",
+        "http://127.0.0.1:*",
+        "http://10.0.2.2:*",  # Android emulator
+        "http://192.168.*.*:*",  # Local network
+        "*"  # Allow all for development - restrict in production
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

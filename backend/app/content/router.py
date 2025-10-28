@@ -1,6 +1,7 @@
 """
 Content management API endpoints.
 """
+from pathlib import Path
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 import os
@@ -310,7 +311,3 @@ async def search_content(
         ContentSearchResponse: Relevant content chunks with similarity scores
     """
     return await ContentService.search_content(search_request, db)
-
-
-# Import Path at the top
-from pathlib import Path

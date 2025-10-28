@@ -91,80 +91,72 @@ services:
     networks:
       - adaptive_learning_network
 
-  # Celery Worker for background tasks
-  worker:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: adaptive_learning_worker
-    environment:
-      # Database configuration
-      DATABASE_URL: postgresql://${POSTGRES_USER:-medical_user}:${POSTGRES_PASSWORD:-medical_password}@db:5432/${POSTGRES_DB:-adaptive_medical_learning}
-      
-      # Redis configuration
-      REDIS_URL: redis://redis:6379/0
-      
-      # OpenAI/LLM configuration
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-3-small}
-      LLM_MODEL: ${LLM_MODEL:-gpt-4o-mini}
-      
-      # Application settings
-      ENVIRONMENT: ${ENVIRONMENT:-development}
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    volumes:
-      - ./backend/app:/app/app
-      - ./backend/uploads:/app/uploads
-    command: celery -A app.celery_app worker --loglevel=info --concurrency=2
-    networks:
-      - adaptive_learning_network
+  # NOTE: Celery worker, beat, and flower are commented out for simplified development
+  # Uncomment these services if you need background task processing
+  # For now, FastAPI BackgroundTasks is used instead
+  
+  # worker:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   container_name: adaptive_learning_worker
+  #   environment:
+  #     DATABASE_URL: postgresql://${POSTGRES_USER:-medical_user}:${POSTGRES_PASSWORD:-medical_password}@db:5432/${POSTGRES_DB:-adaptive_medical_learning}
+  #     REDIS_URL: redis://redis:6379/0
+  #     OPENAI_API_KEY: ${OPENAI_API_KEY}
+  #     EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-3-small}
+  #     LLM_MODEL: ${LLM_MODEL:-gpt-4o-mini}
+  #     ENVIRONMENT: ${ENVIRONMENT:-development}
+  #     LOG_LEVEL: ${LOG_LEVEL:-info}
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   volumes:
+  #     - ./backend/app:/app/app
+  #     - ./backend/uploads:/app/uploads
+  #   command: celery -A app.celery_app worker --loglevel=info --concurrency=2
+  #   networks:
+  #     - adaptive_learning_network
 
-  # Celery Beat for scheduled tasks (optional)
-  beat:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: adaptive_learning_beat
-    environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-medical_user}:${POSTGRES_PASSWORD:-medical_password}@db:5432/${POSTGRES_DB:-adaptive_medical_learning}
-      REDIS_URL: redis://redis:6379/0
-      ENVIRONMENT: ${ENVIRONMENT:-development}
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    volumes:
-      - ./backend/app:/app/app
-    command: celery -A app.celery_app beat --loglevel=info
-    networks:
-      - adaptive_learning_network
+  # beat:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   container_name: adaptive_learning_beat
+  #   environment:
+  #     DATABASE_URL: postgresql://${POSTGRES_USER:-medical_user}:${POSTGRES_PASSWORD:-medical_password}@db:5432/${POSTGRES_DB:-adaptive_medical_learning}
+  #     REDIS_URL: redis://redis:6379/0
+  #     ENVIRONMENT: ${ENVIRONMENT:-development}
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   volumes:
+  #     - ./backend/app:/app/app
+  #   command: celery -A app.celery_app beat --loglevel=info
+  #   networks:
+  #     - adaptive_learning_network
 
-  # Flower - Celery monitoring tool (optional, for development)
-  flower:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: adaptive_learning_flower
-    ports:
-      - "5555:5555"
-    environment:
-      REDIS_URL: redis://redis:6379/0
-      CELERY_BROKER_URL: redis://redis:6379/0
-      # Flower authentication (REQUIRED for security)
-      # Set FLOWER_PASSWORD in .env file
-      FLOWER_BASIC_AUTH: ${FLOWER_USER:-admin}:${FLOWER_PASSWORD:?Set FLOWER_PASSWORD in .env for Flower web UI security}
-    depends_on:
-      - redis
-      - worker
-    command: celery -A app.celery_app flower --port=5555
-    networks:
-      - adaptive_learning_network
+  # flower:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   container_name: adaptive_learning_flower
+  #   ports:
+  #     - "5555:5555"
+  #   environment:
+  #     REDIS_URL: redis://redis:6379/0
+  #     CELERY_BROKER_URL: redis://redis:6379/0
+  #     FLOWER_BASIC_AUTH: ${FLOWER_USER:-admin}:${FLOWER_PASSWORD:-admin}
+  #   depends_on:
+  #     - redis
+  #     - worker
+  #   command: celery -A app.celery_app flower --port=5555
+  #   networks:
+  #     - adaptive_learning_network
 
   # TODO: Flutter Web (nginx serving)
   # Uncomment when Flutter web build is ready for deployment

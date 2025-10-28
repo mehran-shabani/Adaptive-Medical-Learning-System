@@ -89,59 +89,99 @@ Triggers on merge to `main`:
 
 ### Prerequisites
 
-- Docker & Docker Compose
-- Python 3.11+ (for local backend development)
-- Flutter SDK 3.x+ (for local frontend development)
+- **Backend**: Docker & Docker Compose, or Python 3.11+
+- **Frontend**: Flutter SDK 3.0+, Dart 3.0+
+- **Database**: PostgreSQL with pgvector extension (included in Docker setup)
 
-### Quick Start with Docker
+### Quick Start with Docker (Recommended)
 
 ```bash
-# Clone the repository
+# 1. Clone the repository
 git clone https://github.com/your-org/your-repo.git
 cd your-repo
 
-# Copy and configure environment variables
-cp .env.example .env
-# Edit .env and set required variables:
-#   - JWT_SECRET_KEY (generate with: openssl rand -hex 32)
-#   - OPENAI_API_KEY (get from https://platform.openai.com/api-keys)
-#   - FLOWER_PASSWORD (for Celery monitoring UI)
+# 2. Configure Backend environment
+cd backend
+cp env.example .env
 
-# Start all services (API, Database, Redis, Celery Worker)
+# 3. Edit .env file and set:
+#   - JWT_SECRET_KEY (generate with: openssl rand -hex 32)
+#   - OPENAI_API_KEY (optional for initial testing, required for LLM features)
+
+# 4. Start services
+cd ..
 docker-compose up -d
 
-# Backend API will be available at http://localhost:8000
-# API documentation at http://localhost:8000/docs
-# Flower (Celery monitor) at http://localhost:5555
+# 5. Verify services are running
+docker-compose ps
+
+# Backend API: http://localhost:8000
+# API Docs: http://localhost:8000/docs
+# Health Check: http://localhost:8000/health
 ```
 
-**Note**: The `docker-compose.yml` uses required environment variables for security. Development ports are exposed via `docker-compose.override.yml` which is automatically loaded in development.
+### Frontend Setup
 
-### Local Development
+```bash
+# 1. Navigate to frontend directory
+cd frontend
 
-#### Backend Setup
+# 2. Install dependencies
+flutter pub get
+
+# 3. Run the app
+flutter run  # For mobile emulator
+flutter run -d chrome  # For web
+
+# Note: For Android emulator, API will be accessible at http://10.0.2.2:8000
+# For iOS simulator: http://localhost:8000
+# For physical device: Use your computer's local IP (e.g., http://192.168.1.100:8000)
+```
+
+For detailed setup instructions, see [QUICKSTART.md](./QUICKSTART.md)
+
+### Local Development (Without Docker)
+
+#### Backend
 
 ```bash
 cd backend
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
+
+# Configure .env file
+cp env.example .env
+# Edit .env with your PostgreSQL connection details
 
 # Initialize database
 python scripts/init_db.py
 
-# Run development server
+# Run server
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-#### Frontend Setup
+#### Frontend
 
-```bash
-cd frontend
-flutter pub get
-flutter run  # For mobile
-flutter run -d chrome  # For web
-```
+Same as above - Flutter setup is independent of backend deployment method.
+
+## Recent Bug Fixes & Improvements
+
+### Backend
+- ✅ Fixed Python version in Dockerfile (3.14 → 3.11)
+- ✅ Fixed import order in content/router.py  
+- ✅ Added comprehensive error handling for OpenAI API
+- ✅ Improved CORS configuration for Flutter development
+- ✅ Simplified Docker setup (removed optional Celery services for development)
+- ✅ Created env.example with comprehensive configuration guide
+
+### Frontend
+- ✅ Implemented centralized API configuration (ApiConfig)
+- ✅ Added proper error handling to all API services
+- ✅ Activated login flow with OTP authentication
+- ✅ Implemented named routes and navigation
+- ✅ Completed all provider implementations (Dashboard, Quiz, Study Plan)
+- ✅ Improved network error messages in Persian
 
 ## Security & Data Privacy
 
@@ -150,6 +190,7 @@ flutter run -d chrome  # For web
 - Student profiles and mastery data are confidential
 - PDF source materials may be subject to copyright restrictions
 - **Do NOT** publish proprietary content in public releases
+- JWT tokens are securely stored using flutter_secure_storage
 
 See [SECURITY.md](./SECURITY.md) for vulnerability reporting procedures.
 

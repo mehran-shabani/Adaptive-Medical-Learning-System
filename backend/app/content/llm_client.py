@@ -8,10 +8,25 @@ import httpx
 import json
 import logging
 from typing import List, Dict, Any, Optional
+from fastapi import HTTPException, status
 
 from app.config import settings
 
 logger = logging.getLogger(__name__)
+
+
+def validate_openai_config():
+    """
+    Validate OpenAI API configuration.
+    
+    Raises:
+        HTTPException: If OpenAI API key is missing or invalid
+    """
+    if not settings.OPENAI_API_KEY or settings.OPENAI_API_KEY == "" or settings.OPENAI_API_KEY == "sk-your-openai-api-key-here":
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="OpenAI API key is not configured. Please set OPENAI_API_KEY in environment variables."
+        )
 
 # System prompt to restrict hallucinations
 # This is kept as an editable string constant
@@ -55,6 +70,9 @@ class LLMClient:
         Returns:
             List[Dict]: List of question dictionaries
             
+        Raises:
+            HTTPException: If OpenAI API key is not configured
+            
         Example:
             questions = await LLMClient.generate_questions(
                 topic_name="DKA Management",
@@ -63,6 +81,8 @@ class LLMClient:
                 difficulty="medium"
             )
         """
+        # Validate OpenAI configuration
+        validate_openai_config()
         user_prompt = f"""Topic: {topic_name}
 
 Source Material:
@@ -123,9 +143,34 @@ Respond ONLY with the JSON array."""
                 logger.info(f"Generated {len(questions)} questions for {topic_name}")
                 return questions[:count]
                 
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error from OpenAI API: {e.response.status_code} - {e.response.text}")
+            if e.response.status_code == 401:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Invalid OpenAI API key. Please check your configuration."
+                )
+            elif e.response.status_code == 429:
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail="OpenAI API rate limit exceeded. Please try again later."
+                )
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"OpenAI API error: {str(e)}"
+            )
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse LLM response as JSON: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to parse LLM response. Please try again."
+            )
         except Exception as e:
-            logger.error(f"Error generating questions with LLM: {e}")
-            return []
+            logger.error(f"Unexpected error generating questions with LLM: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Error generating questions: {str(e)}"
+            )
     
     @staticmethod
     async def generate_summary(
@@ -144,6 +189,9 @@ Respond ONLY with the JSON array."""
         Returns:
             Dict: Summary data with keys: summary, key_points, high_yield_traps, citations
             
+        Raises:
+            HTTPException: If OpenAI API key is not configured
+            
         Example:
             summary = await LLMClient.generate_summary(
                 topic_name="DKA Management",
@@ -151,6 +199,8 @@ Respond ONLY with the JSON array."""
                 include_high_yield=True
             )
         """
+        # Validate OpenAI configuration
+        validate_openai_config()
         user_prompt = f"""Topic: {topic_name}
 
 Source Material:
@@ -209,10 +259,31 @@ Respond ONLY with the JSON."""
                 logger.info(f"Generated summary for {topic_name}")
                 return result
                 
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error from OpenAI API: {e.response.status_code} - {e.response.text}")
+            if e.response.status_code == 401:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Invalid OpenAI API key. Please check your configuration."
+                )
+            elif e.response.status_code == 429:
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail="OpenAI API rate limit exceeded. Please try again later."
+                )
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"OpenAI API error: {str(e)}"
+            )
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse LLM response as JSON: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to parse LLM response. Please try again."
+            )
         except Exception as e:
-            logger.error(f"Error generating summary with LLM: {e}")
-            return {
-                "summary": f"Error generating summary: {str(e)}",
-                "key_points": [],
-                "high_yield_traps": []
-            }
+            logger.error(f"Unexpected error generating summary with LLM: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Error generating summary: {str(e)}"
+            )

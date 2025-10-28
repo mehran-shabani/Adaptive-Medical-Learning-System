@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/login_screen.dart';
+import 'features/dashboard/dashboard_screen.dart';
+import 'features/study_plan/study_plan_screen.dart';
+import 'features/quiz/quiz_screen.dart';
+import 'features/summary/summary_screen.dart';
 
 /// Main entry point for AdaptiveMed Flutter application
 ///
@@ -32,15 +36,34 @@ class AdaptiveMedApp extends StatelessWidget {
         themeMode: ThemeMode.light,
 
         // Start with Login screen
-        home: const LoginScreen(),
+        initialRoute: '/login',
 
-        // TODO: Add proper routing with named routes
-        // routes: {
-        //   '/login': (context) => const LoginScreen(),
-        //   '/dashboard': (context) => const DashboardScreen(),
-        //   '/study-plan': (context) => const StudyPlanScreen(),
-        //   '/quiz': (context) => const QuizScreen(),
-        //   '/summary': (context) => const SummaryScreen(),
-        // },
+        // Named routes
+        routes: {
+          '/login': (context) => const LoginScreen(),
+          '/dashboard': (context) => const DashboardScreen(),
+          '/study-plan': (context) => const StudyPlanScreen(),
+        },
+
+        // Route generator for routes with parameters (quiz and summary need topicId)
+        onGenerateRoute: (settings) {
+          if (settings.name == '/quiz') {
+            final args = settings.arguments as Map<String, dynamic>?;
+            final topicId = args?['topicId'] as int? ?? 1;
+            return MaterialPageRoute(
+              builder: (context) => QuizScreen(topicId: topicId),
+              settings: settings,
+            );
+          }
+          if (settings.name == '/summary') {
+            final args = settings.arguments as Map<String, dynamic>?;
+            final topicId = args?['topicId'] as int? ?? 1;
+            return MaterialPageRoute(
+              builder: (context) => SummaryScreen(topicId: topicId),
+              settings: settings,
+            );
+          }
+          return null;
+        },
       );
 }

@@ -37,15 +37,15 @@ class StudyPlanNotifier extends StateNotifier<StudyPlanState> {
 
   /// Load study plan for user
   Future<void> loadPlan({
-    required int userId,
     int durationMinutes = 120,
+    bool includeQuiz = true,
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     try {
       final data = await _planService.getStudyPlan(
-        userId,
         durationMinutes: durationMinutes,
+        includeQuiz: includeQuiz,
       );
 
       final plan = StudyPlanModel.fromJson(data);
@@ -59,6 +59,7 @@ class StudyPlanNotifier extends StateNotifier<StudyPlanState> {
         isLoading: false,
         errorMessage: e.toString(),
       );
+      rethrow;
     }
   }
 }
