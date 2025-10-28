@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'study_plan_provider.dart';
+
 import '../../widgets/plan_block_card.dart';
+import 'study_plan_provider.dart';
 
 /// Study plan screen showing recommended study blocks
-/// 
+///
 /// Displays 120-minute personalized study plan with:
 /// - Topics prioritized by spaced repetition
 /// - Time allocation for each topic
@@ -27,12 +28,12 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
       // ref.read(studyPlanProvider.notifier).loadPlan(userId: 1);
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     // TODO: Watch study plan provider state
     // final planState = ref.watch(studyPlanProvider);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('برنامه مطالعه'),
@@ -69,7 +70,7 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Study blocks
           // TODO: Map through actual plan blocks
           const PlanBlockCard(
@@ -93,9 +94,9 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
             currentMastery: 0.38,
             reason: 'تسلط پایین',
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Start studying button
           ElevatedButton.icon(
             onPressed: () {

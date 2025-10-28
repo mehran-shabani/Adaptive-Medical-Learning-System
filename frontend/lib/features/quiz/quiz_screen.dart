@@ -4,19 +4,18 @@ import 'quiz_provider.dart';
 import '../../widgets/quiz_option_tile.dart';
 
 /// Quiz screen for answering MCQ questions
-/// 
+///
 /// Features:
 /// - Display clinical vignette questions
 /// - Four option selection
 /// - Timer for response time tracking
 /// - Immediate feedback after submission
 class QuizScreen extends ConsumerStatefulWidget {
-  final int topicId;
-  
   const QuizScreen({
     super.key,
     required this.topicId,
   });
+  final int topicId;
 
   @override
   ConsumerState<QuizScreen> createState() => _QuizScreenState();
@@ -25,7 +24,7 @@ class QuizScreen extends ConsumerStatefulWidget {
 class _QuizScreenState extends ConsumerState<QuizScreen> {
   String? _selectedOption;
   DateTime? _questionStartTime;
-  
+
   @override
   void initState() {
     super.initState();
@@ -36,7 +35,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
       // ref.read(quizProvider.notifier).loadQuiz(topicId: widget.topicId);
     });
   }
-  
+
   void _submitAnswer() {
     if (_selectedOption == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -44,10 +43,11 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
       );
       return;
     }
-    
+
     // Calculate response time
-    final responseTime = DateTime.now().difference(_questionStartTime!).inSeconds.toDouble();
-    
+    final responseTime =
+        DateTime.now().difference(_questionStartTime!).inSeconds.toDouble();
+
     // TODO: Submit answer
     // ref.read(quizProvider.notifier).submitAnswer(
     //   questionId: currentQuestion.questionId,
@@ -55,12 +55,12 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     //   responseTimeSec: responseTime,
     // );
   }
-  
+
   @override
   Widget build(BuildContext context) {
     // TODO: Watch quiz provider state
     // final quizState = ref.watch(quizProvider);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('تست'),
@@ -70,7 +70,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
-                '۱/۵',  // TODO: Use actual question count
+                '۱/۵', // TODO: Use actual question count
                 style: const TextStyle(fontSize: 16),
               ),
             ),
@@ -108,7 +108,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Options
             // TODO: Map through actual options
             QuizOptionTile(
@@ -139,7 +139,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
               onTap: () => setState(() => _selectedOption = 'D'),
             ),
             const SizedBox(height: 24),
-            
+
             // Submit button
             ElevatedButton(
               onPressed: _submitAnswer,

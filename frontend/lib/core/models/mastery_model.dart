@@ -1,11 +1,5 @@
 /// Mastery model for user proficiency tracking
 class MasteryModel {
-  final int topicId;
-  final String topicName;
-  final String systemName;
-  final double masteryScore;
-  final String? lastReviewedAt;
-  
   MasteryModel({
     required this.topicId,
     required this.topicName,
@@ -13,7 +7,7 @@ class MasteryModel {
     required this.masteryScore,
     this.lastReviewedAt,
   });
-  
+
   factory MasteryModel.fromJson(Map<String, dynamic> json) {
     return MasteryModel(
       topicId: json['topic_id'] as int,
@@ -23,14 +17,17 @@ class MasteryModel {
       lastReviewedAt: json['last_reviewed_at'] as String?,
     );
   }
-  
-  Map<String, dynamic> toJson() {
-    return {
-      'topic_id': topicId,
-      'topic_name': topicName,
-      'system_name': systemName,
-      'mastery_score': masteryScore,
-      'last_reviewed_at': lastReviewedAt,
-    };
-  }
+  final int topicId;
+  final String topicName;
+  final String systemName;
+  final double masteryScore;
+  final String? lastReviewedAt;
+
+  Map<String, dynamic> toJson() => {
+        'topic_id': topicId,
+        'topic_name': topicName,
+        'system_name': systemName,
+        'mastery_score': masteryScore,
+        'last_reviewed_at': lastReviewedAt,
+      };
 }

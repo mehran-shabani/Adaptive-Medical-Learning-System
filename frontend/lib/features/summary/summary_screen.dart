@@ -4,18 +4,17 @@ import 'summary_provider.dart';
 import '../../widgets/keypoint_card.dart';
 
 /// Summary screen showing topic content with citations
-/// 
+///
 /// Displays:
 /// - Key clinical points
 /// - High-yield traps and tips
 /// - Source citations for transparency
 class SummaryScreen extends ConsumerStatefulWidget {
-  final int topicId;
-  
   const SummaryScreen({
     super.key,
     required this.topicId,
   });
+  final int topicId;
 
   @override
   ConsumerState<SummaryScreen> createState() => _SummaryScreenState();
@@ -31,12 +30,12 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
       // ref.read(summaryProvider.notifier).loadSummary(topicId: widget.topicId);
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     // TODO: Watch summary provider state
     // final summaryState = ref.watch(summaryProvider);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('خلاصه مطالب'),
@@ -52,7 +51,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'مدیریت کتواسیدوز دیابتی (DKA)',  // TODO: Use actual topic name
+                    'مدیریت کتواسیدوز دیابتی (DKA)', // TODO: Use actual topic name
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ],
@@ -60,7 +59,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Key points section
           Text(
             'نکات کلیدی',
@@ -74,15 +73,16 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
           ),
           const KeypointCard(
             title: 'نکته ۲',
-            content: 'شروع انسولین قبل از احیای مایع در کودکان می‌تواند خطر ادم مغزی را افزایش دهد',
+            content:
+                'شروع انسولین قبل از احیای مایع در کودکان می‌تواند خطر ادم مغزی را افزایش دهد',
           ),
           const KeypointCard(
             title: 'نکته ۳',
             content: 'مونیتورینگ دقیق الکترولیت‌ها ضروری است',
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // High-yield traps section
           Text(
             'دام‌های تستی (High-Yield)',
@@ -114,9 +114,9 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Citations section
           Text(
             'منابع و استنادات',
@@ -137,9 +137,9 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Start quiz button
           ElevatedButton.icon(
             onPressed: () {
@@ -157,14 +157,12 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
       ),
     );
   }
-  
-  Widget _buildCitation(String reference) {
-    return Row(
-      children: [
-        const Icon(Icons.book, size: 16),
-        const SizedBox(width: 8),
-        Text(reference),
-      ],
-    );
-  }
+
+  Widget _buildCitation(String reference) => Row(
+        children: [
+          const Icon(Icons.book, size: 16),
+          const SizedBox(width: 8),
+          Text(reference),
+        ],
+      );
 }

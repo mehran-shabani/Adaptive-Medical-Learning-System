@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dashboard_provider.dart';
+
 import '../../widgets/mastery_card.dart';
+import 'dashboard_provider.dart';
 
 /// Dashboard screen showing user mastery across topics
-/// 
+///
 /// Displays:
 /// - Overall mastery percentage
 /// - Mastery breakdown by body system
@@ -27,12 +28,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       // ref.read(dashboardProvider.notifier).loadMastery();
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     // TODO: Watch dashboard provider state
     // final dashboardState = ref.watch(dashboardProvider);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('داشبورد'),
@@ -80,14 +81,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // System breakdown section
             Text(
               'تسلط بر اساس سیستم‌های بدن',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
-            
+
             // TODO: Map through actual mastery data
             // Example mastery cards
             const MasteryCard(
@@ -105,9 +106,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               masteryScore: 0.88,
               lastReviewedDaysAgo: 1,
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Action buttons
             ElevatedButton.icon(
               onPressed: () {
