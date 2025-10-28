@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'summary_provider.dart';
 import '../../widgets/keypoint_card.dart';
 
 /// Summary screen showing topic content with citations

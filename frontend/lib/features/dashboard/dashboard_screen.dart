@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../widgets/mastery_card.dart';
-import 'dashboard_provider.dart';
 
 /// Dashboard screen showing user mastery across topics
 ///

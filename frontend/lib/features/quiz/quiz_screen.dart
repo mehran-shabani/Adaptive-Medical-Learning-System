@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'quiz_provider.dart';
 import '../../widgets/quiz_option_tile.dart';
 
 /// Quiz screen for answering MCQ questions
