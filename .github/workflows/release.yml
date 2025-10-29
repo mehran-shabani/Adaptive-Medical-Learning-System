@@ -236,7 +236,7 @@ jobs:
           echo "📱 APK built: adaptive-learning-v${VERSION}.apk"
 
       - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: android-apk
           path: artifacts/adaptive-learning-v${{ needs.release.outputs.new_version }}.apk
