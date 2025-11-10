@@ -23,7 +23,7 @@ passlib[bcrypt]==1.7.4
 python-dotenv==1.2.1
 
 # HTTP Clients
-httpx==0.26.0
+httpx==0.28.1
 requests==2.32.4
 kavenegar==1.1.3
 
