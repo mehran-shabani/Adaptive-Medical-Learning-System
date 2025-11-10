@@ -37,4 +37,4 @@ redis==5.3.1
 
 # Utilities
 python-dateutil==2.9.0.post0
-pytz==2023.3
+pytz==2023.4
