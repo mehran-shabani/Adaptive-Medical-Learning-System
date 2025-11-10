@@ -10,7 +10,7 @@ psycopg2-binary==2.9.11
 asyncpg>=0.30.0
 
 # Vector Database
-pgvector==0.2.4
+pgvector==0.4.1
 # qdrant-client==1.7.0  # Alternative vector DB
 
 # Pydantic
