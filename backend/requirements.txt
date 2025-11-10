@@ -14,7 +14,7 @@ pgvector==0.2.4
 # qdrant-client==1.7.0  # Alternative vector DB
 
 # Pydantic
-pydantic==2.12.3
+pydantic==2.12.4
 pydantic-settings==2.11.0
 
 # Authentication & Security
