@@ -19,7 +19,7 @@ dependencies:
   
   # Secure Storage
   flutter_secure_storage: ^9.0.0
-  shared_preferences: ^2.2.2
+  shared_preferences: ^2.5.4
   
   # UI & Theme
   cupertino_icons: ^1.0.6
