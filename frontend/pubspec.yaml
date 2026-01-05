@@ -32,7 +32,7 @@ dependencies:
   json_annotation: ^4.8.1
   
   # Utilities
-  equatable: ^2.0.5
+  equatable: ^2.0.8
   logger: ^2.0.2
 
 dev_dependencies:
